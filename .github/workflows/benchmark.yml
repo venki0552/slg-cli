@@ -1,0 +1,42 @@
+name: Benchmarks
+on:
+  pull_request:
+    paths:
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+
+jobs:
+  benchmark_guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build release binary
+        run: cargo build --release
+      - name: Create synthetic repos
+        run: python3 scripts/create_synthetic_repos.py
+      - name: Run quick benchmark
+        run: python3 tests/benchmarks/runner.py --quick --repos synthetic/small
+      - name: Check for regressions
+        run: python3 tests/benchmarks/regression_check.py --threshold 0.05
+      - name: Post benchmark results as PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const resultsPath = 'tests/benchmarks/results/latest.md';
+            if (fs.existsSync(resultsPath)) {
+              const results = fs.readFileSync(resultsPath, 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '## lore Benchmark Results\n\n' + results
+              });
+            }
