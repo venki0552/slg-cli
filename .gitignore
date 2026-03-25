@@ -1,0 +1,30 @@
+# Build
+/target/
+
+# Windows device name artifacts
+NUL
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Lore runtime
+.lore/
+*.db
+*.db-wal
+*.db-shm
+
+# Node (plugin)
+node_modules/
+plugin/out/
+plugin/*.vsix
+
+# Env
+.env
+.env.local

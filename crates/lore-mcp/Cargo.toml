@@ -1,0 +1,18 @@
+[package]
+name = "lore-mcp"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+lore-core = { path = "../lore-core" }
+lore-index = { path = "../lore-index" }
+lore-output = { path = "../lore-output" }
+lore-security = { path = "../lore-security" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
