@@ -2,9 +2,9 @@ name: Benchmarks
 on:
   pull_request:
     paths:
-      - 'crates/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
 
 jobs:
   benchmark_guard:
@@ -15,7 +15,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Build release binary
         run: cargo build --release
       - name: Create synthetic repos

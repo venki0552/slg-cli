@@ -31,12 +31,12 @@ lore serve
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `lore init` | Initialize lore index for the current repo |
-| `lore why <query>` | Semantic search over git history |
-| `lore doctor` | Run health checks and fix issues |
-| `lore serve` | Start MCP server (stdio JSON-RPC 2.0) |
+| Command            | Description                                |
+| ------------------ | ------------------------------------------ |
+| `lore init`        | Initialize lore index for the current repo |
+| `lore why <query>` | Semantic search over git history           |
+| `lore doctor`      | Run health checks and fix issues           |
+| `lore serve`       | Start MCP server (stdio JSON-RPC 2.0)      |
 
 ## Architecture
 
@@ -64,33 +64,35 @@ The `plugin/` directory contains a VS Code extension that:
 
 lore exposes 5 MCP tools:
 
-| Tool | Description |
-|------|-------------|
-| `lore_why` | Semantic search: "Why does this code exist?" |
-| `lore_blame` | Enhanced blame with semantic context |
-| `lore_log` | Filtered, token-efficient commit log |
-| `lore_bisect` | Find when a behavior was introduced |
-| `lore_status` | Index health and statistics |
+| Tool          | Description                                  |
+| ------------- | -------------------------------------------- |
+| `lore_why`    | Semantic search: "Why does this code exist?" |
+| `lore_blame`  | Enhanced blame with semantic context         |
+| `lore_log`    | Filtered, token-efficient commit log         |
+| `lore_bisect` | Find when a behavior was introduced          |
+| `lore_status` | Index health and statistics                  |
 
 ### Agent Configuration
 
 Copy the appropriate config to register lore with your AI agent:
 
 **Claude Code** (`~/.claude/claude_desktop_config.json`):
+
 ```json
 {
-  "mcpServers": {
-    "lore": { "command": "lore", "args": ["mcp", "start"] }
-  }
+	"mcpServers": {
+		"lore": { "command": "lore", "args": ["mcp", "start"] }
+	}
 }
 ```
 
 **Cursor** (`~/.cursor/mcp.json`):
+
 ```json
 {
-  "mcpServers": {
-    "lore": { "command": "lore", "args": ["mcp", "start"] }
-  }
+	"mcpServers": {
+		"lore": { "command": "lore", "args": ["mcp", "start"] }
+	}
 }
 ```
 
