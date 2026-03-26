@@ -151,8 +151,15 @@ mod tests {
     fn test_path_traversal_absolute_blocked() {
         let result = safe_index_path("abc123", "/etc/passwd").unwrap();
         let result_str = result.to_string_lossy();
+        // Path must stay under the indices directory for repo abc123
         assert!(result_str.contains("abc123"));
-        assert!(!result_str.contains("/etc"));
+        // The slash separators from the input must not survive as path components
+        let file_name = result.file_name().unwrap().to_string_lossy();
+        assert!(!file_name.contains('/'));
+        assert!(!file_name.contains('\\'));
+        // Must be a .db file inside the repo hash directory
+        assert!(file_name.ends_with(".db"));
+        assert!(result.parent().unwrap().ends_with("abc123"));
     }
 
     #[test]
