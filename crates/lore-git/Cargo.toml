@@ -8,7 +8,7 @@ license.workspace = true
 [dependencies]
 lore-core = { path = "../lore-core" }
 lore-security = { path = "../lore-security" }
-git2 = { version = "0.20", features = ["vendored-libgit2"] }
+git2 = { version = "0.20", features = ["vendored-libgit2", "vendored-openssl"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
