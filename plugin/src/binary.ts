@@ -5,7 +5,7 @@ import * as crypto from 'crypto';
 import { execSync } from 'child_process';
 
 const EXPECTED_VERSION = '0.1.0';
-const GITHUB_RELEASE_BASE = 'https://github.com/lore-sh/lore/releases/download';
+const GITHUB_RELEASE_BASE = 'https://github.com/venki0552/lore-cli/releases/download';
 
 const BINARY_MAP: Record<string, string> = {
   'linux-x64': 'lore-linux-x86_64',
