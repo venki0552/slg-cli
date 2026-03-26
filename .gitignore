@@ -20,10 +20,14 @@ Thumbs.db
 *.db-wal
 *.db-shm
 
-# Node (plugin)
+# Node (plugin + docs)
 node_modules/
 plugin/out/
 plugin/*.vsix
+
+# VitePress
+.vitepress/dist/
+.vitepress/cache/
 
 # Env
 .env
