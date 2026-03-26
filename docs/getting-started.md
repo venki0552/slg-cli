@@ -38,7 +38,7 @@ slg init  # now usable everywhere without npx
 
 ### Option B — Download a pre-built binary
 
-Go to the [latest GitHub release](https://github.com/venki0552/slg/releases/latest) and download the file for your platform:
+Go to the [latest GitHub release](https://github.com/venki0552/slg-cli/releases/latest) and download the file for your platform:
 
 | Platform                       | File to download         |
 | ------------------------------ | ------------------------ |
@@ -54,8 +54,8 @@ Each release also ships a `.sha256` file. **Verify the checksum before running t
 
 ```bash [Linux / macOS]
 # Download (replace filename with your platform's binary)
-curl -LO https://github.com/venki0552/slg/releases/latest/download/slg-linux-x86_64
-curl -LO https://github.com/venki0552/slg/releases/latest/download/slg-linux-x86_64.sha256
+curl -LO https://github.com/venki0552/slg-cli/releases/latest/download/slg-linux-x86_64
+curl -LO https://github.com/venki0552/slg-cli/releases/latest/download/slg-linux-x86_64.sha256
 
 # Verify checksum
 sha256sum -c slg-linux-x86_64.sha256
@@ -70,8 +70,8 @@ slg --version
 
 ```powershell [Windows (PowerShell)]
 # Download
-Invoke-WebRequest -Uri https://github.com/venki0552/slg/releases/latest/download/slg-windows-x86_64.exe -OutFile slg.exe
-Invoke-WebRequest -Uri https://github.com/venki0552/slg/releases/latest/download/slg-windows-x86_64.exe.sha256 -OutFile slg.exe.sha256
+Invoke-WebRequest -Uri https://github.com/venki0552/slg-cli/releases/latest/download/slg-windows-x86_64.exe -OutFile slg.exe
+Invoke-WebRequest -Uri https://github.com/venki0552/slg-cli/releases/latest/download/slg-windows-x86_64.exe.sha256 -OutFile slg.exe.sha256
 
 # Verify checksum
 $expected = (Get-Content slg.exe.sha256).Split()[0]
@@ -96,7 +96,7 @@ Install the **slg** VS Code extension from the Marketplace. On first activation 
 Requires [Rust 1.75+](https://rustup.rs/) and Git.
 
 ```bash
-git clone https://github.com/venki0552/slg
+git clone https://github.com/venki0552/slg-cli
 cd slg
 cargo build --release
 

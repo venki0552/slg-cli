@@ -4,8 +4,8 @@
 
 slg (Semantic Lore for Git) is a single Rust binary that transforms your git history into a queryable semantic knowledge base. It serves precise, token-efficient context to LLM agents via MCP (Model Context Protocol) — with zero cloud dependency, zero data egress, and zero git mutation.
 
-[![CI](https://github.com/venki0552/slg/actions/workflows/ci.yml/badge.svg)](https://github.com/venki0552/slg/actions/workflows/ci.yml)
-[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](https://github.com/venki0552/slg/blob/main/LICENSE-MIT)
+[![CI](https://github.com/venki0552/slg-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/venki0552/slg-cli/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](https://github.com/venki0552/slg-cli/blob/main/LICENSE-MIT)
 
 ---
 
@@ -42,7 +42,7 @@ npm install -g slg-cli   # installs the proxy globally
 
 ### Pre-built Binaries
 
-Download from [GitHub Releases](https://github.com/venki0552/slg/releases):
+Download from [GitHub Releases](https://github.com/venki0552/slg-cli/releases):
 
 | Platform        | Binary                   |
 | --------------- | ------------------------ |
@@ -66,7 +66,7 @@ sudo mv slg-linux-x86_64 /usr/local/bin/slg
 Requires **Rust 1.75+** and **Git**.
 
 ```bash
-git clone https://github.com/venki0552/slg
+git clone https://github.com/venki0552/slg-cli
 cd slg
 cargo build --release
 # output: target/release/slg
@@ -146,7 +146,7 @@ SLG_LOG=debug ./target/release/slg why "test query"
 
 ## License
 
-Licensed under either of [MIT](https://github.com/venki0552/slg/blob/main/LICENSE-MIT) or [Apache 2.0](https://github.com/venki0552/slg/blob/main/LICENSE-APACHE) at your option.
+Licensed under either of [MIT](https://github.com/venki05-cli/blob/main/LICENSE-MIT) or [Apache 2.0](https://github.com/venki0552/slg-cli/blob/main/LICENSE-APACHE) at your option.
 
 ## Contributing
 

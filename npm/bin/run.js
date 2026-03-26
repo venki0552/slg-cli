@@ -16,7 +16,7 @@ const crypto = require("crypto");
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const VERSION = "0.1.0";
-const BASE_URL = `https://github.com/venki0552/slg/releases/download/v${VERSION}`;
+const BASE_URL = `https://github.com/venki0552/slg-cli/releases/download/v${VERSION}`;
 
 /** Maps Node.js `process.platform-process.arch` to a release binary name. */
 const BINARIES = {
@@ -135,7 +135,9 @@ async function downloadAndInstall() {
 		console.error(
 			"Supported platforms: linux-x64, linux-arm64, darwin-arm64, darwin-x64, win32-x64",
 		);
-		console.error("Open an issue at https://github.com/venki0552/slg/issues");
+		console.error(
+			"Open an issue at https://github.com/venki0552/slg-cli/issues",
+		);
 		process.exit(1);
 	}
 
@@ -174,7 +176,7 @@ async function downloadAndInstall() {
 		console.error(`  actual:   ${actual}`);
 		console.error("The downloaded binary may be corrupted or tampered with.");
 		console.error(
-			"Please open an issue at https://github.com/venki0552/slg/issues",
+			"Please open an issue at https://github.com/venki0552/slg-cli/issues",
 		);
 		process.exit(1);
 	}

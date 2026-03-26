@@ -14,7 +14,7 @@ hero:
       link: /docs/commands
     - theme: alt
       text: GitHub
-      link: https://github.com/venki0552/slg
+      link: https://github.com/venki0552/slg-cli
 
 features:
   - icon: ⚡

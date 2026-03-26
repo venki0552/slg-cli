@@ -74,7 +74,7 @@ node --version   # only for plugin work
 
 ```bash
 # Clone the repository
-git clone https://github.com/venki0552/slg
+git clone https://github.com/venki0552/slg-cli
 cd slg
 
 # Build in debug mode (faster compile, slower runtime)
@@ -306,7 +306,7 @@ test: add invariant test for path traversal with unicode
 
 ## Security
 
-If you find a security vulnerability, **do not open a public issue**. Instead, open a [GitHub Security Advisory](https://github.com/venki0552/slg/security/advisories/new) or email the maintainers directly.
+If you find a security vulnerability, **do not open a public issue**. Instead, open a [GitHub Security Advisory](https://github.com/venki0552/slg-cli/security/advisories/new) or email the maintainers directly.
 
 Security issues include:
 
