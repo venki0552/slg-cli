@@ -1,6 +1,6 @@
+use rusqlite::params;
 use slg_core::errors::SlgError;
 use slg_core::types::CommitDoc;
-use rusqlite::params;
 
 use crate::store::IndexStore;
 

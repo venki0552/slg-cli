@@ -1,5 +1,5 @@
-use slg_core::errors::SlgError;
 use sha2::{Digest, Sha256};
+use slg_core::errors::SlgError;
 use std::path::{Path, PathBuf};
 
 /// Walk up from `start` to find the directory containing `.git/`.

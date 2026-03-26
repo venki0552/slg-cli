@@ -20,11 +20,7 @@ pub async fn run(fix_all: bool) -> Result<(), SlgError> {
     if slg_home.exists() {
         println!("{} slg home: {}", "✓".green(), slg_home.display());
     } else {
-        println!(
-            "{} slg home: {} (not found)",
-            "✗".red(),
-            slg_home.display()
-        );
+        println!("{} slg home: {} (not found)", "✗".red(), slg_home.display());
         issues += 1;
     }
 

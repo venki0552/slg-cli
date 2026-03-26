@@ -1,6 +1,6 @@
+use rusqlite::{params, Connection, OptionalExtension};
 use slg_core::errors::SlgError;
 use slg_core::types::{CommitDoc, CommitIntent, IndexMetadata};
-use rusqlite::{params, Connection, OptionalExtension};
 use std::path::{Path, PathBuf};
 use tracing::debug;
 

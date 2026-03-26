@@ -1,5 +1,5 @@
-use slg_core::types::SearchResult;
 use serde_json::json;
+use slg_core::types::SearchResult;
 
 /// Format search results as JSON.
 pub fn format_json(results: &[SearchResult], query: &str, latency_ms: u64) -> String {

@@ -22,9 +22,7 @@ pub enum SlgError {
     #[error("Embedding model not found. Run 'slg init' to download it.")]
     ModelNotFound,
 
-    #[error(
-        "Model checksum verification failed. Delete ~/.slg/models/ and run 'slg init' again."
-    )]
+    #[error("Model checksum verification failed. Delete ~/.slg/models/ and run 'slg init' again.")]
     ModelChecksumFailed,
 
     #[error("MCP rate limit exceeded. Please wait before retrying.")]

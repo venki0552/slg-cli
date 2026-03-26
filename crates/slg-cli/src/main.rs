@@ -168,8 +168,8 @@ async fn run_health() -> Result<(), SlgError> {
 
     let (git_root, branch, indexed, size_kb) = match slg_git::detector::find_git_root(&cwd) {
         Ok(root) => {
-            let branch = slg_git::detector::get_current_branch(&root)
-                .unwrap_or_else(|_| "main".to_string());
+            let branch =
+                slg_git::detector::get_current_branch(&root).unwrap_or_else(|_| "main".to_string());
             let repo_hash = slg_git::detector::compute_repo_hash(&root);
             let index_path = slg_security::paths::safe_index_path(&repo_hash, &branch)?;
             let (indexed, size_kb) = if index_path.exists() {

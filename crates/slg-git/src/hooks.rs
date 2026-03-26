@@ -52,9 +52,8 @@ pub fn install_hooks(repo_path: &Path) -> Result<Vec<String>, SlgError> {
             if existing.contains(HOOK_HEADER) {
                 // Update existing slg block
                 let updated = replace_slg_block(&existing, &block);
-                std::fs::write(&hook_path, updated).map_err(|e| {
-                    SlgError::Git(format!("Failed to update hook {}: {}", name, e))
-                })?;
+                std::fs::write(&hook_path, updated)
+                    .map_err(|e| SlgError::Git(format!("Failed to update hook {}: {}", name, e)))?;
                 debug!("Updated hook: {}", name);
             } else {
                 // Append slg block to existing hook

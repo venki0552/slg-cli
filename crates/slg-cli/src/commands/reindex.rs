@@ -76,8 +76,8 @@ pub async fn run(args: ReindexArgs) -> Result<(), SlgError> {
             continue;
         }
 
-        let oid = git2::Oid::from_str(hash)
-            .map_err(|e| SlgError::Git(format!("Invalid hash: {}", e)))?;
+        let oid =
+            git2::Oid::from_str(hash).map_err(|e| SlgError::Git(format!("Invalid hash: {}", e)))?;
         let commit = repo
             .find_commit(oid)
             .map_err(|e| SlgError::Git(format!("Commit not found: {}", e)))?;

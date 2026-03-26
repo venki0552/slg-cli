@@ -1,9 +1,9 @@
 use git2::{Commit, DiffOptions, Repository, Sort};
+use regex::Regex;
 use slg_core::errors::SlgError;
 use slg_core::types::{CommitDoc, CommitIntent};
 use slg_security::redactor::SecretRedactor;
 use slg_security::sanitizer::CommitSanitizer;
-use regex::Regex;
 use tokio::sync::mpsc;
 use tracing::debug;
 

@@ -1,3 +1,4 @@
+use serde_json::{json, Value};
 use slg_core::errors::SlgError;
 use slg_core::types::OutputFormat;
 use slg_git::detector;
@@ -7,7 +8,6 @@ use slg_index::store::IndexStore;
 use slg_output::{json as json_fmt, xml};
 use slg_security::output_guard::OutputGuard;
 use slg_security::paths;
-use serde_json::{json, Value};
 use std::time::Instant;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tracing::{debug, info};
@@ -355,10 +355,7 @@ fn json_rpc_error(id: Option<Value>, code: i32, message: &str) -> Value {
 
 async fn write_response(stdout: &mut tokio::io::Stdout, response: &Value) -> Result<(), SlgError> {
     let s = serde_json::to_string(response).unwrap_or_default();
-    stdout
-        .write_all(s.as_bytes())
-        .await
-        .map_err(SlgError::Io)?;
+    stdout.write_all(s.as_bytes()).await.map_err(SlgError::Io)?;
     stdout.write_all(b"\n").await.map_err(SlgError::Io)?;
     stdout.flush().await.map_err(SlgError::Io)?;
     Ok(())
