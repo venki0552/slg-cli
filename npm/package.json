@@ -1,0 +1,25 @@
+{
+  "name": "lore-cli",
+  "version": "0.1.0",
+  "description": "Semantic git intelligence for LLM agents — npx installer and proxy for the lore CLI.",
+  "keywords": ["git", "ai", "mcp", "semantic-search", "llm", "claude", "cursor", "copilot"],
+  "license": "MIT OR Apache-2.0",
+  "homepage": "https://github.com/venki0552/lore-cli",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/venki0552/lore-cli",
+    "directory": "npm"
+  },
+  "bugs": {
+    "url": "https://github.com/venki0552/lore-cli/issues"
+  },
+  "bin": {
+    "lore": "./bin/run.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -23,6 +23,23 @@ lore reduces agent token usage by ~95% for history questions by indexing commits
 
 ## Installation
 
+### npx (no install required)
+
+If you have Node.js 18+:
+
+```bash
+npx lore-cli init
+npx lore-cli why "your question"
+```
+
+The binary is downloaded once, SHA-256 verified, and cached at `~/.lore/bin/lore`. Every subsequent call is instant. To add `lore` to your PATH permanently:
+
+```bash
+npx lore-cli install      # downloads + prints PATH setup instructions
+# or
+npm install -g lore-cli   # installs the proxy globally
+```
+
 ### Pre-built Binaries
 
 Download from [GitHub Releases](https://github.com/venki0552/lore-cli/releases):
@@ -77,15 +94,15 @@ See the **[Getting Started guide](docs/getting-started.md)** for step-by-step in
 
 Full reference documentation is in the [`docs/`](docs/commands) folder:
 
-| Document                                          | Description                                                        |
-| ------------------------------------------------- | ------------------------------------------------------------------ |
-| [Getting Started](docs/getting-started.md)        | Installation on all platforms, first run, AI agent setup           |
-| [Commands](docs/commands.md)                      | Every CLI command, all flags, and examples                         |
-| [MCP Integration](docs/mcp.md)                    | Connecting lore to Claude Code, Cursor, Windsurf, and other agents |
-| [Configuration](docs/configuration.md)            | `~/.lore/config.toml` reference and VS Code settings               |
-| [Architecture](docs/architecture.md)              | Crate structure, data model, and search pipeline                   |
-| [Security](docs/security.md)                      | Threat model, secret redaction, and injection defense              |
-| [VS Code Extension](docs/vscode-extension.md)     | Building and using the VS Code plugin                              |
+| Document                                      | Description                                                        |
+| --------------------------------------------- | ------------------------------------------------------------------ |
+| [Getting Started](docs/getting-started.md)    | Installation on all platforms, first run, AI agent setup           |
+| [Commands](docs/commands.md)                  | Every CLI command, all flags, and examples                         |
+| [MCP Integration](docs/mcp.md)                | Connecting lore to Claude Code, Cursor, Windsurf, and other agents |
+| [Configuration](docs/configuration.md)        | `~/.lore/config.toml` reference and VS Code settings               |
+| [Architecture](docs/architecture.md)          | Crate structure, data model, and search pipeline                   |
+| [Security](docs/security.md)                  | Threat model, secret redaction, and injection defense              |
+| [VS Code Extension](docs/vscode-extension.md) | Building and using the VS Code plugin                              |
 
 ---
 

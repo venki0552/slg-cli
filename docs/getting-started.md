@@ -8,17 +8,45 @@ This guide takes you from zero to running your first `lore why` query in under f
 
 Pick the method that matches how you work.
 
-### Option A — Download a pre-built binary (fastest)
+### Option A — npx (no install required)
+
+If you have Node.js 18+ installed, this is the fastest way to get started and works identically on Linux, macOS, and Windows:
+
+```bash
+# Run any lore command directly — binary is downloaded on first use
+npx lore-cli init
+npx lore-cli why "why was the retry limit set to 3"
+```
+
+The binary is cached at `~/.lore/bin/lore` after the first download. Every subsequent `npx lore-cli` call is instant — it just execs the cached binary.
+
+To permanently add `lore` to your PATH so you can drop the `npx lore-cli` prefix:
+
+```bash
+npx lore-cli install
+# Follow the PATH instructions it prints
+```
+
+Or install globally via npm:
+
+```bash
+npm install -g lore-cli
+lore init  # now usable everywhere without npx
+```
+
+---
+
+### Option B — Download a pre-built binary
 
 Go to the [latest GitHub release](https://github.com/venki0552/lore-cli/releases/latest) and download the file for your platform:
 
-| Platform | File to download |
-|---|---|
-| Linux x86\_64 | `lore-linux-x86_64` |
-| Linux ARM64 | `lore-linux-aarch64` |
-| macOS Apple Silicon (M1/M2/M3) | `lore-darwin-arm64` |
-| macOS Intel | `lore-darwin-x86_64` |
-| Windows x86\_64 | `lore-windows-x86_64.exe` |
+| Platform                       | File to download          |
+| ------------------------------ | ------------------------- |
+| Linux x86_64                   | `lore-linux-x86_64`       |
+| Linux ARM64                    | `lore-linux-aarch64`      |
+| macOS Apple Silicon (M1/M2/M3) | `lore-darwin-arm64`       |
+| macOS Intel                    | `lore-darwin-x86_64`      |
+| Windows x86_64                 | `lore-windows-x86_64.exe` |
 
 Each release also ships a `.sha256` file. **Verify the checksum before running the binary.**
 
@@ -59,11 +87,11 @@ lore --version
 
 :::
 
-### Option B — VS Code extension (zero manual steps)
+### Option C — VS Code extension (zero manual steps)
 
 Install the **lore** VS Code extension from the Marketplace. On first activation it automatically downloads the correct binary for your platform, verifies its SHA-256 checksum, and runs `lore init` in the background. You don't need to touch a terminal.
 
-### Option C — Build from source
+### Option D — Build from source
 
 Requires [Rust 1.75+](https://rustup.rs/) and Git.
 
@@ -142,33 +170,33 @@ Run `lore serve` to start the MCP server, then add it to your agent's config:
 
 ```json [Claude Code (~/.claude/claude_desktop_config.json)]
 {
-  "mcpServers": {
-    "lore": { "command": "lore", "args": ["serve"] }
-  }
+	"mcpServers": {
+		"lore": { "command": "lore", "args": ["serve"] }
+	}
 }
 ```
 
 ```json [Cursor (~/.cursor/mcp.json)]
 {
-  "mcpServers": {
-    "lore": { "command": "lore", "args": ["serve"] }
-  }
+	"mcpServers": {
+		"lore": { "command": "lore", "args": ["serve"] }
+	}
 }
 ```
 
 ```json [Windsurf (~/.windsurf/mcp.json)]
 {
-  "mcpServers": {
-    "lore": { "command": "lore", "args": ["serve"] }
-  }
+	"mcpServers": {
+		"lore": { "command": "lore", "args": ["serve"] }
+	}
 }
 ```
 
 ```json [GitHub Copilot (.vscode/mcp.json)]
 {
-  "servers": {
-    "lore": { "type": "stdio", "command": "lore", "args": ["serve"] }
-  }
+	"servers": {
+		"lore": { "type": "stdio", "command": "lore", "args": ["serve"] }
+	}
 }
 ```
 
@@ -208,14 +236,17 @@ You haven't run `lore init` in this repo yet, or you're in a directory that isn'
 
 **Model download fails**
 lore downloads `all-MiniLM-L6-v2` from HuggingFace on first run. Check your internet connection, then retry with:
+
 ```bash
 lore init --force
 ```
 
 **Something else looks wrong**
+
 ```bash
 lore doctor
 ```
+
 `lore doctor` checks your binary version, model, index, hooks, and MCP config and prints exactly what needs fixing.
 
 ---
