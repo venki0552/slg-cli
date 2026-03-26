@@ -19,15 +19,15 @@ lore is designed to index git history without leaking secrets, credentials, or s
 
 ## Threat Model
 
-| Threat | Mitigation |
-|---|---|
-| Secrets committed to git end up in the AI context | Secret redaction before indexing |
-| Malicious branch names causing path traversal | Branch name sanitization + prefix check |
-| AI agent output manipulated via commit messages | CDATA wrapping, injection flagging |
-| Index files readable by other system users | `0o700` directory permissions (Unix) |
-| Secrets leaked in debug logs | Redactor only logs counts, never content |
-| Excessive data sent to AI agent | 50 KB response cap, token budget |
-| Prompt injection in diff/commit text | `injection_flagged` column in SQLite |
+| Threat                                            | Mitigation                               |
+| ------------------------------------------------- | ---------------------------------------- |
+| Secrets committed to git end up in the AI context | Secret redaction before indexing         |
+| Malicious branch names causing path traversal     | Branch name sanitization + prefix check  |
+| AI agent output manipulated via commit messages   | CDATA wrapping, injection flagging       |
+| Index files readable by other system users        | `0o700` directory permissions (Unix)     |
+| Secrets leaked in debug logs                      | Redactor only logs counts, never content |
+| Excessive data sent to AI agent                   | 50 KB response cap, token budget         |
+| Prompt injection in diff/commit text              | `injection_flagged` column in SQLite     |
 
 ---
 
@@ -35,21 +35,21 @@ lore is designed to index git history without leaking secrets, credentials, or s
 
 The `SecretRedactor` in `lore-security` scans every `diff_summary` field **before it is written to SQLite**. Secrets never reach the index. Patterns are matched in order (most-specific first to prevent partial overlap):
 
-| Pattern | Replacement token | Example match |
-|---|---|---|
-| AWS access key | `[REDACTED-AWS-ACCESS]` | `AKIAIOSFODNN7EXAMPLE` |
-| GitHub classic PAT | `[REDACTED-GH-TOKEN]` | `ghp_Abc123...` (36 chars) |
-| GitHub fine-grained PAT | `[REDACTED-GH-PAT]` | `github_pat_...` (82 chars) |
-| Anthropic API key | `[REDACTED-ANTHROPIC]` | `sk-ant-api03-...` |
-| OpenAI API key | `[REDACTED-OPENAI]` | `sk-...` (32+ chars) |
-| Google API key | `[REDACTED-GOOGLE]` | `AIza...` (35 chars) |
-| Stripe live key | `[REDACTED-STRIPE-LIVE]` | `sk_live_...` |
-| Stripe test key | `[REDACTED-STRIPE-TEST]` | `sk_test_...` |
-| Twilio account SID | `[REDACTED-TWILIO]` | `AC` + 32 hex chars |
-| PEM private key | `[REDACTED-PRIVATE-KEY]` | `-----BEGIN PRIVATE KEY-----` |
-| JWT token | `[REDACTED-JWT]` | `eyJ...` three-part |
-| Database URL with credentials | `[REDACTED-DB-URL]://` | `postgres://user:pass@host` |
-| Generic `key=value` credentials | `[REDACTED-GENERIC]` | `api_key: "abc123"` |
+| Pattern                         | Replacement token        | Example match                 |
+| ------------------------------- | ------------------------ | ----------------------------- |
+| AWS access key                  | `[REDACTED-AWS-ACCESS]`  | `AKIAIOSFODNN7EXAMPLE`        |
+| GitHub classic PAT              | `[REDACTED-GH-TOKEN]`    | `ghp_Abc123...` (36 chars)    |
+| GitHub fine-grained PAT         | `[REDACTED-GH-PAT]`      | `github_pat_...` (82 chars)   |
+| Anthropic API key               | `[REDACTED-ANTHROPIC]`   | `sk-ant-api03-...`            |
+| OpenAI API key                  | `[REDACTED-OPENAI]`      | `sk-...` (32+ chars)          |
+| Google API key                  | `[REDACTED-GOOGLE]`      | `AIza...` (35 chars)          |
+| Stripe live key                 | `[REDACTED-STRIPE-LIVE]` | `sk_live_...`                 |
+| Stripe test key                 | `[REDACTED-STRIPE-TEST]` | `sk_test_...`                 |
+| Twilio account SID              | `[REDACTED-TWILIO]`      | `AC` + 32 hex chars           |
+| PEM private key                 | `[REDACTED-PRIVATE-KEY]` | `-----BEGIN PRIVATE KEY-----` |
+| JWT token                       | `[REDACTED-JWT]`         | `eyJ...` three-part           |
+| Database URL with credentials   | `[REDACTED-DB-URL]://`   | `postgres://user:pass@host`   |
+| Generic `key=value` credentials | `[REDACTED-GENERIC]`     | `api_key: "abc123"`           |
 
 **What the redactor does NOT log:** The redactor records only the number of redacted matches per pattern, never the matched content. This prevents sensitive values from appearing in application logs.
 
@@ -95,9 +95,9 @@ This means a commit message that contains XML tags or what looks like an XML ins
 
 All directories created by lore under `~/.lore/` are created with **`0o700` permissions** on Unix systems (owner read/write/execute only). This includes:
 
-| Directory | Purpose |
-|---|---|
-| `~/.lore/` | Root of all lore data |
+| Directory                      | Purpose                               |
+| ------------------------------ | ------------------------------------- |
+| `~/.lore/`                     | Root of all lore data                 |
 | `~/.lore/indices/<repo_hash>/` | Per-repo, per-branch SQLite databases |
 
 On Windows, explicit permission setting is a no-op (the OS ACLs on the user's home directory provide equivalent isolation).

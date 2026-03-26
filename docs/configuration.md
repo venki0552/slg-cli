@@ -23,22 +23,22 @@ lore has two levels of configuration: the `~/.lore/config.toml` file (applies to
 
 ### Core settings
 
-| Key | Type | Default | Description |
-|---|---|---|---|
-| `cleanup_after_days` | integer | `7` | Delete stale branch indices after this many days of inactivity (set to `0` to disable) |
-| `max_response_tokens` | integer | `4096` | Maximum tokens in any single response from a retrieval command |
-| `default_result_limit` | integer | `3` | Default number of search results returned by `lore why`, `lore log`, etc. |
-| `embedding_model` | string | `"all-MiniLM-L6-v2"` | Embedding model name. Only `all-MiniLM-L6-v2` is currently supported |
-| `default_output_format` | `"text"` \| `"xml"` \| `"json"` | `"text"` | Default output format for retrieval commands |
-| `enable_reranker` | boolean | `false` | Enable cross-encoder re-ranking stage (adds ~50 ms latency, improves accuracy) |
+| Key                     | Type                            | Default              | Description                                                                            |
+| ----------------------- | ------------------------------- | -------------------- | -------------------------------------------------------------------------------------- |
+| `cleanup_after_days`    | integer                         | `7`                  | Delete stale branch indices after this many days of inactivity (set to `0` to disable) |
+| `max_response_tokens`   | integer                         | `4096`               | Maximum tokens in any single response from a retrieval command                         |
+| `default_result_limit`  | integer                         | `3`                  | Default number of search results returned by `lore why`, `lore log`, etc.              |
+| `embedding_model`       | string                          | `"all-MiniLM-L6-v2"` | Embedding model name. Only `all-MiniLM-L6-v2` is currently supported                   |
+| `default_output_format` | `"text"` \| `"xml"` \| `"json"` | `"text"`             | Default output format for retrieval commands                                           |
+| `enable_reranker`       | boolean                         | `false`              | Enable cross-encoder re-ranking stage (adds ~50 ms latency, improves accuracy)         |
 
 ### MCP server settings
 
-| Key | Type | Default | Description |
-|---|---|---|---|
-| `mcp_rate_limit_rpm` | integer | `60` | Maximum MCP tool calls per minute (token bucket) |
+| Key                    | Type    | Default | Description                                           |
+| ---------------------- | ------- | ------- | ----------------------------------------------------- |
+| `mcp_rate_limit_rpm`   | integer | `60`    | Maximum MCP tool calls per minute (token bucket)      |
 | `mcp_output_max_bytes` | integer | `50000` | Maximum response size per tool call in bytes (~50 KB) |
-| `mcp_timeout_secs` | integer | `5` | Per-tool-call timeout in seconds |
+| `mcp_timeout_secs`     | integer | `5`     | Per-tool-call timeout in seconds                      |
 
 ### LLM settings (Phase 2)
 
@@ -46,13 +46,13 @@ The `[llm]` section configures lore for generation commands (`lore commit`, `lor
 
 > **API keys are never stored in `config.toml`.** Only the environment variable name that holds the key is stored.
 
-| Key | Type | Default | Description |
-|---|---|---|---|
-| `llm.provider` | string | — | One of: `Anthropic`, `OpenAI`, `Gemini`, `Ollama`, `LmStudio`, `ClaudeCode`, `None` |
-| `llm.model` | string | — | Model identifier (e.g. `claude-sonnet-4-5`, `gpt-4o`) |
-| `llm.api_key_env` | string | — | Name of the environment variable holding the API key (e.g. `ANTHROPIC_API_KEY`) |
-| `llm.base_url` | string | — | Base URL for local providers (Ollama: `http://localhost:11434`) |
-| `llm.timeout_secs` | integer | `30` | LLM request timeout in seconds |
+| Key                | Type    | Default | Description                                                                         |
+| ------------------ | ------- | ------- | ----------------------------------------------------------------------------------- |
+| `llm.provider`     | string  | —       | One of: `Anthropic`, `OpenAI`, `Gemini`, `Ollama`, `LmStudio`, `ClaudeCode`, `None` |
+| `llm.model`        | string  | —       | Model identifier (e.g. `claude-sonnet-4-5`, `gpt-4o`)                               |
+| `llm.api_key_env`  | string  | —       | Name of the environment variable holding the API key (e.g. `ANTHROPIC_API_KEY`)     |
+| `llm.base_url`     | string  | —       | Base URL for local providers (Ollama: `http://localhost:11434`)                     |
+| `llm.timeout_secs` | integer | `30`    | LLM request timeout in seconds                                                      |
 
 ### Full example config
 
@@ -85,25 +85,25 @@ timeout_secs = 30
 
 Configure these in VS Code via **File → Preferences → Settings** and search for "lore", or edit `settings.json` directly.
 
-| Setting | Type | Default | Description |
-|---|---|---|---|
-| `lore.autoRegisterMCP` | boolean | `true` | Auto-register the lore MCP server with Claude Code, Cursor, and Windsurf agent config files |
-| `lore.cleanupAfterDays` | number | `7` | Delete stale branch indices after N days of inactivity |
-| `lore.outputFormat` | `"text"` \| `"xml"` \| `"json"` | `"xml"` | Default output format for MCP responses |
-| `lore.enableReranker` | boolean | `false` | Enable cross-encoder reranking in MCP responses (~50 ms added latency) |
-| `lore.indexOnActivation` | boolean | `true` | Automatically index the workspace when VS Code opens |
-| `lore.showStatusBar` | boolean | `true` | Show lore index status in the VS Code status bar |
+| Setting                  | Type                            | Default | Description                                                                                 |
+| ------------------------ | ------------------------------- | ------- | ------------------------------------------------------------------------------------------- |
+| `lore.autoRegisterMCP`   | boolean                         | `true`  | Auto-register the lore MCP server with Claude Code, Cursor, and Windsurf agent config files |
+| `lore.cleanupAfterDays`  | number                          | `7`     | Delete stale branch indices after N days of inactivity                                      |
+| `lore.outputFormat`      | `"text"` \| `"xml"` \| `"json"` | `"xml"` | Default output format for MCP responses                                                     |
+| `lore.enableReranker`    | boolean                         | `false` | Enable cross-encoder reranking in MCP responses (~50 ms added latency)                      |
+| `lore.indexOnActivation` | boolean                         | `true`  | Automatically index the workspace when VS Code opens                                        |
+| `lore.showStatusBar`     | boolean                         | `true`  | Show lore index status in the VS Code status bar                                            |
 
 Example `settings.json` snippet:
 
 ```json
 {
-  "lore.autoRegisterMCP": true,
-  "lore.outputFormat": "xml",
-  "lore.enableReranker": false,
-  "lore.indexOnActivation": true,
-  "lore.showStatusBar": true,
-  "lore.cleanupAfterDays": 14
+	"lore.autoRegisterMCP": true,
+	"lore.outputFormat": "xml",
+	"lore.enableReranker": false,
+	"lore.indexOnActivation": true,
+	"lore.showStatusBar": true,
+	"lore.cleanupAfterDays": 14
 }
 ```
 
@@ -111,12 +111,12 @@ Example `settings.json` snippet:
 
 ## Environment Variables
 
-| Variable | Description |
-|---|---|
-| `LORE_LOG` | Log level filter passed to `tracing-subscriber`. Values: `error`, `warn`, `info`, `debug`, `trace`. Default: `warn`. |
-| `LORE_CONFIG` | Override path to `config.toml` (default: `~/.lore/config.toml`). |
-| `ANTHROPIC_API_KEY` | (Phase 2) Anthropic API key — referenced by `llm.api_key_env`, never stored in config. |
-| `OPENAI_API_KEY` | (Phase 2) OpenAI API key — same pattern. |
+| Variable            | Description                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `LORE_LOG`          | Log level filter passed to `tracing-subscriber`. Values: `error`, `warn`, `info`, `debug`, `trace`. Default: `warn`. |
+| `LORE_CONFIG`       | Override path to `config.toml` (default: `~/.lore/config.toml`).                                                     |
+| `ANTHROPIC_API_KEY` | (Phase 2) Anthropic API key — referenced by `llm.api_key_env`, never stored in config.                               |
+| `OPENAI_API_KEY`    | (Phase 2) OpenAI API key — same pattern.                                                                             |
 
 ---
 

@@ -8,11 +8,11 @@ Reference for every `lore` command. All commands must be run inside a git reposi
 
 These flags work on every command:
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--format <fmt>` | `text` | Output format: `text`, `xml`, or `json` |
-| `--max-tokens <N>` | `4096` | Truncate output to N tokens (always returns at least 1 result) |
-| `--silent` | off | Suppress all non-result output (progress, labels, hints) |
+| Flag               | Default | Description                                                    |
+| ------------------ | ------- | -------------------------------------------------------------- |
+| `--format <fmt>`   | `text`  | Output format: `text`, `xml`, or `json`                        |
+| `--max-tokens <N>` | `4096`  | Truncate output to N tokens (always returns at least 1 result) |
+| `--silent`         | off     | Suppress all non-result output (progress, labels, hints)       |
 
 ---
 
@@ -32,14 +32,14 @@ lore init
 
 **Flags:**
 
-| Flag | Description |
-| --- | --- |
-| `--global` | Also install shell integration into your shell RC file (zsh/bash/fish/PowerShell) |
-| `--background` | Run the initial indexing in the background, return immediately |
-| `--mcp-only` | Only register MCP configuration; skip hooks and indexing |
-| `--hooks-only` | Only install git hooks; skip indexing and MCP |
-| `--shell-only` | Only install shell integration; skip everything else |
-| `--silent` | Suppress all output (used internally by hooks) |
+| Flag           | Description                                                                       |
+| -------------- | --------------------------------------------------------------------------------- |
+| `--global`     | Also install shell integration into your shell RC file (zsh/bash/fish/PowerShell) |
+| `--background` | Run the initial indexing in the background, return immediately                    |
+| `--mcp-only`   | Only register MCP configuration; skip hooks and indexing                          |
+| `--hooks-only` | Only install git hooks; skip indexing and MCP                                     |
+| `--shell-only` | Only install shell integration; skip everything else                              |
+| `--silent`     | Suppress all output (used internally by hooks)                                    |
 
 **Example output:**
 
@@ -74,10 +74,10 @@ lore index --background
 
 **Flags:**
 
-| Flag | Description |
-| --- | --- |
+| Flag           | Description                                    |
+| -------------- | ---------------------------------------------- |
 | `--background` | Run indexing in background, return immediately |
-| `--silent` | Suppress progress output |
+| `--silent`     | Suppress progress output                       |
 
 **When to use:** After resetting the index, switching to a new machine, or if `lore doctor` reports index issues.
 
@@ -94,11 +94,11 @@ lore reindex --delta-only
 
 **Flags:**
 
-| Flag | Description |
-| --- | --- |
+| Flag           | Description                                                          |
+| -------------- | -------------------------------------------------------------------- |
 | `--delta-only` | Only index new commits (default behavior, included for explicitness) |
-| `--background` | Run in background |
-| `--silent` | Suppress output |
+| `--background` | Run in background                                                    |
+| `--silent`     | Suppress output                                                      |
 
 **When to use:** Manually trigger when you've pulled commits and want the index updated immediately without waiting for a hook.
 
@@ -120,21 +120,21 @@ lore why "security patches" --format json --max-tokens 2000
 
 **Arguments:**
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `<query>` | Yes | Free-text semantic query (max 500 characters) |
+| Argument  | Required | Description                                   |
+| --------- | -------- | --------------------------------------------- |
+| `<query>` | Yes      | Free-text semantic query (max 500 characters) |
 
 **Flags:**
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--limit <N>` | `3` | Number of results to return (max limited by token budget) |
-| `--since <date>` | — | Only include commits after this date. Format: `YYYY-MM-DD` |
-| `--author <name>` | — | Filter results to this author (substring match) |
-| `--module <path>` | — | Filter to commits that touched files under this path |
-| `--max-tokens <N>` | `4096` | Truncate output to N tokens |
-| `--rerank` | off | Enable cross-encoder reranking for higher precision (~50ms extra) |
-| `--format` | `text` | `text`, `xml`, or `json` |
+| Flag               | Default | Description                                                       |
+| ------------------ | ------- | ----------------------------------------------------------------- |
+| `--limit <N>`      | `3`     | Number of results to return (max limited by token budget)         |
+| `--since <date>`   | —       | Only include commits after this date. Format: `YYYY-MM-DD`        |
+| `--author <name>`  | —       | Filter results to this author (substring match)                   |
+| `--module <path>`  | —       | Filter to commits that touched files under this path              |
+| `--max-tokens <N>` | `4096`  | Truncate output to N tokens                                       |
+| `--rerank`         | off     | Enable cross-encoder reranking for higher precision (~50ms extra) |
+| `--format`         | `text`  | `text`, `xml`, or `json`                                          |
 
 **How search works:**
 
@@ -166,7 +166,7 @@ lore why — "retry limit set to 3"  (3 results, 47ms)
 
 ## `lore blame`
 
-Semantic ownership analysis for a file or function. Finds which commits introduced or meaningfully changed the target, ranked by relevance. More useful than `git blame` for understanding *why* something is the way it is.
+Semantic ownership analysis for a file or function. Finds which commits introduced or meaningfully changed the target, ranked by relevance. More useful than `git blame` for understanding _why_ something is the way it is.
 
 ```bash
 lore blame src/auth/session.rs
@@ -176,18 +176,18 @@ lore blame src/api/routes.py --risk
 
 **Arguments:**
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `<file>` | Yes | File path to analyze (relative to repo root) |
+| Argument | Required | Description                                  |
+| -------- | -------- | -------------------------------------------- |
+| `<file>` | Yes      | File path to analyze (relative to repo root) |
 
 **Flags:**
 
-| Flag | Description |
-| --- | --- |
-| `--fn <name>` | Focus on a specific function name within the file |
-| `--risk` | Include risk scores in output |
-| `--format` | `text`, `xml`, or `json` |
-| `--max-tokens <N>` | Truncate output |
+| Flag               | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| `--fn <name>`      | Focus on a specific function name within the file |
+| `--risk`           | Include risk scores in output                     |
+| `--format`         | `text`, `xml`, or `json`                          |
+| `--max-tokens <N>` | Truncate output                                   |
 
 **What it does internally:** Builds a search query like `"changes to file src/auth/session.rs"` (or `"changes to function charge_card in file src/payments/processor.ts"`), then runs the full hybrid search filtered to that file path.
 
@@ -205,17 +205,17 @@ lore bisect "websocket connections drop after 30 seconds" --format json
 
 **Arguments:**
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `<bug_description>` | Yes | Description of the bug (free text) |
+| Argument            | Required | Description                        |
+| ------------------- | -------- | ---------------------------------- |
+| `<bug_description>` | Yes      | Description of the bug (free text) |
 
 **Flags:**
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--limit <N>` | `5` | Max candidate commits to return |
-| `--format` | `text` | `text`, `xml`, or `json` |
-| `--max-tokens <N>` | `4096` | Truncate output |
+| Flag               | Default | Description                     |
+| ------------------ | ------- | ------------------------------- |
+| `--limit <N>`      | `5`     | Max candidate commits to return |
+| `--format`         | `text`  | `text`, `xml`, or `json`        |
+| `--max-tokens <N>` | `4096`  | Truncate output                 |
 
 **Workflow:** Use the candidates returned by `lore bisect` as the initial suspect range for `git bisect`. This reduces the range from thousands of commits to 5–10 meaningful candidates.
 
@@ -234,25 +234,25 @@ lore log "security" --format json
 
 **Arguments:**
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `<query>` | Yes | Search query |
+| Argument  | Required | Description  |
+| --------- | -------- | ------------ |
+| `<query>` | Yes      | Search query |
 
 **Flags:**
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--since <date>` | — | Filter commits after `YYYY-MM-DD` |
-| `--limit <N>` | `10` | Number of results |
-| `--by-intent` | off | Group results by detected intent |
-| `--format` | `text` | `text`, `xml`, or `json` |
-| `--max-tokens <N>` | `8192` | Truncate output (default is higher than `why` for browsing) |
+| Flag               | Default | Description                                                 |
+| ------------------ | ------- | ----------------------------------------------------------- |
+| `--since <date>`   | —       | Filter commits after `YYYY-MM-DD`                           |
+| `--limit <N>`      | `10`    | Number of results                                           |
+| `--by-intent`      | off     | Group results by detected intent                            |
+| `--format`         | `text`  | `text`, `xml`, or `json`                                    |
+| `--max-tokens <N>` | `8192`  | Truncate output (default is higher than `why` for browsing) |
 
 ---
 
 ## `lore diff`
 
-Intent-level diff between two git refs. Instead of raw line-by-line output, shows the semantic purpose of each commit in the range. Useful for understanding what a PR or release actually *changed* in intent terms.
+Intent-level diff between two git refs. Instead of raw line-by-line output, shows the semantic purpose of each commit in the range. Useful for understanding what a PR or release actually _changed_ in intent terms.
 
 ```bash
 lore diff                        # defaults to HEAD~1..HEAD
@@ -264,18 +264,18 @@ lore diff abc1234 def5678 --breaking-only
 
 **Arguments:**
 
-| Argument | Default | Description |
-| --- | --- | --- |
+| Argument | Default  | Description                   |
+| -------- | -------- | ----------------------------- |
 | `<base>` | `HEAD~1` | Base ref (older end of range) |
-| `<head>` | `HEAD` | Head ref (newer end of range) |
+| `<head>` | `HEAD`   | Head ref (newer end of range) |
 
 **Flags:**
 
-| Flag | Description |
-| --- | --- |
+| Flag              | Description                                  |
+| ----------------- | -------------------------------------------- |
 | `--breaking-only` | Only show commits tagged as breaking changes |
-| `--silent` | Suppress non-result output |
-| `--format` | `text`, `xml`, or `json` |
+| `--silent`        | Suppress non-result output                   |
+| `--format`        | `text`, `xml`, or `json`                     |
 
 **Note:** If `base` and `head` resolve to the same commit, lore returns an explicit "no changes" message rather than an empty result.
 
@@ -293,17 +293,17 @@ lore revert-risk v2.3.1 --format json
 
 **Arguments:**
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `<commit>` | Yes | Commit hash (full or 7+ chars), branch name, tag, or ref like `HEAD` |
+| Argument   | Required | Description                                                          |
+| ---------- | -------- | -------------------------------------------------------------------- |
+| `<commit>` | Yes      | Commit hash (full or 7+ chars), branch name, tag, or ref like `HEAD` |
 
 **Flags:**
 
-| Flag | Description |
-| --- | --- |
-| `--silent` | Suppress non-result output |
-| `--format` | `text`, `xml`, or `json` |
-| `--max-tokens <N>` | Truncate output |
+| Flag               | Description                |
+| ------------------ | -------------------------- |
+| `--silent`         | Suppress non-result output |
+| `--format`         | `text`, `xml`, or `json`   |
+| `--max-tokens <N>` | Truncate output            |
 
 **Note:** Symbolic refs (`HEAD`, `HEAD~1`, tag names, branch names) are automatically resolved to their commit hash. Both short (7+ char) and full hashes are accepted directly.
 
@@ -320,8 +320,8 @@ lore status --format json
 
 **Flags:**
 
-| Flag | Description |
-| --- | --- |
+| Flag       | Description              |
+| ---------- | ------------------------ |
 | `--format` | `text`, `xml`, or `json` |
 
 **Example output (text format):**
@@ -357,10 +357,10 @@ lore cleanup --dry-run          # preview without deleting
 
 **Flags:**
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--older-than <N>` | `7` | Remove indices not accessed in the last N days |
-| `--dry-run` | off | Show what would be deleted without actually deleting |
+| Flag               | Default | Description                                          |
+| ------------------ | ------- | ---------------------------------------------------- |
+| `--older-than <N>` | `7`     | Remove indices not accessed in the last N days       |
+| `--dry-run`        | off     | Show what would be deleted without actually deleting |
 
 ---
 
@@ -375,21 +375,21 @@ lore doctor --fix-all
 
 **Flags:**
 
-| Flag | Description |
-| --- | --- |
+| Flag        | Description                                                                       |
+| ----------- | --------------------------------------------------------------------------------- |
 | `--fix-all` | Automatically fix detected issues (re-installs hooks, recreates index if missing) |
 
 **Checks performed:**
 
-| Check | What it verifies |
-| --- | --- |
-| Binary version | Current installed version |
-| lore home | `~/.lore/` directory exists |
-| Models directory | `~/.lore/models/` exists (embedding model downloaded) |
-| Git repository | Current directory is inside a git repo |
-| Git hooks | `post-commit`, `post-checkout`, `post-merge`, `post-rewrite` hooks installed |
-| Index | Index file exists for current branch |
-| Shell | Detected shell type (zsh, bash, fish, PowerShell, or unknown) |
+| Check            | What it verifies                                                             |
+| ---------------- | ---------------------------------------------------------------------------- |
+| Binary version   | Current installed version                                                    |
+| lore home        | `~/.lore/` directory exists                                                  |
+| Models directory | `~/.lore/models/` exists (embedding model downloaded)                        |
+| Git repository   | Current directory is inside a git repo                                       |
+| Git hooks        | `post-commit`, `post-checkout`, `post-merge`, `post-rewrite` hooks installed |
+| Index            | Index file exists for current branch                                         |
+| Shell            | Detected shell type (zsh, bash, fish, PowerShell, or unknown)                |
 
 **Example output:**
 
@@ -421,6 +421,7 @@ lore mcp
 These commands have no user-facing flags. They are invoked by your agent's MCP configuration, not directly from the terminal. See [MCP Integration](mcp.md) for setup instructions.
 
 **MCP server limits:**
+
 - Rate limit: 60 requests per minute (per process)
 - Max output per response: 50,000 bytes
 - Request timeout: 5 seconds
@@ -438,8 +439,8 @@ lore sync --silent
 
 **Flags:**
 
-| Flag | Description |
-| --- | --- |
+| Flag       | Description     |
+| ---------- | --------------- |
 | `--silent` | Suppress output |
 
 **CI usage example:**
@@ -456,20 +457,20 @@ lore sync --silent
 
 These commands are used by git hooks and the VS Code extension. They are hidden from `lore --help` and not intended for direct use.
 
-| Command | Description |
-| --- | --- |
-| `lore _health` | Machine-readable health check (JSON). Used by VS Code status bar. |
-| `lore _repo-hash` | Print stable repo hash for current directory. |
-| `lore _index-commit <hash>` | Index a single commit by SHA. Called by `post-commit` hook. |
-| `lore _index-path` | Print the index file path for the current repo and branch. |
+| Command                     | Description                                                       |
+| --------------------------- | ----------------------------------------------------------------- |
+| `lore _health`              | Machine-readable health check (JSON). Used by VS Code status bar. |
+| `lore _repo-hash`           | Print stable repo hash for current directory.                     |
+| `lore _index-commit <hash>` | Index a single commit by SHA. Called by `post-commit` hook.       |
+| `lore _index-path`          | Print the index file path for the current repo and branch.        |
 
 ---
 
 ## Exit Codes
 
-| Code | Meaning |
-| --- | --- |
-| `0` | Success |
-| `1` | Error (message printed to stderr) |
+| Code | Meaning                           |
+| ---- | --------------------------------- |
+| `0`  | Success                           |
+| `1`  | Error (message printed to stderr) |
 
 Errors include: not in a git repository, no index found (run `lore init`), query too long, index schema mismatch (run `lore sync --reindex`), security violation (check `~/.lore/security.log`).

@@ -25,14 +25,14 @@
 
 ## Protocol Overview
 
-| Property | Value |
-|---|---|
-| Transport | `stdio` (stdin → stdout, stderr for logs) |
-| Protocol | JSON-RPC 2.0 |
-| MCP Version | `2024-11-05` |
-| Server Name | `lore` |
-| Server Version | `0.1.0` |
-| Capability | `tools` (read-only, no writes) |
+| Property       | Value                                     |
+| -------------- | ----------------------------------------- |
+| Transport      | `stdio` (stdin → stdout, stderr for logs) |
+| Protocol       | JSON-RPC 2.0                              |
+| MCP Version    | `2024-11-05`                              |
+| Server Name    | `lore`                                    |
+| Server Version | `0.1.0`                                   |
+| Capability     | `tools` (read-only, no writes)            |
 
 ---
 
@@ -52,21 +52,24 @@ The server reads from `stdin` and writes to `stdout`, one JSON-RPC message per l
 
 ## Server Limits
 
-| Limit | Value |
-|---|---|
-| Rate limit | 60 requests / minute (token bucket, refills 1 token/sec) |
-| Response size | 50 KB max (`mcp_output_max_bytes`, configurable) |
-| Tool call timeout | 5 seconds (`mcp_timeout_secs`, configurable) |
-| Max results per tool | 10 |
-| Max query length | 500 characters |
+| Limit                | Value                                                    |
+| -------------------- | -------------------------------------------------------- |
+| Rate limit           | 60 requests / minute (token bucket, refills 1 token/sec) |
+| Response size        | 50 KB max (`mcp_output_max_bytes`, configurable)         |
+| Tool call timeout    | 5 seconds (`mcp_timeout_secs`, configurable)             |
+| Max results per tool | 10                                                       |
+| Max query length     | 500 characters                                           |
 
 When the rate limit is exceeded the server returns HTTP-style error `429`:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
-  "error": { "code": -32000, "message": "Rate limit exceeded. Try again in 1s." }
+	"jsonrpc": "2.0",
+	"id": 1,
+	"error": {
+		"code": -32000,
+		"message": "Rate limit exceeded. Try again in 1s."
+	}
 }
 ```
 
@@ -82,30 +85,30 @@ Search git history semantically. Returns commits that explain **why** a decision
 
 **Input schema:**
 
-| Parameter | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `query` | string | ✓ | — | Semantic search query (max 500 chars) |
-| `limit` | number | | 3 | Number of results (max 10) |
-| `since` | string | | — | Filter commits after this ISO 8601 date (e.g. `2024-01-01`) |
-| `author` | string | | — | Filter by author name or email substring |
-| `format` | `"xml"` \| `"json"` | | `"xml"` | Output format |
-| `max_tokens` | number | | 4096 | Maximum response tokens |
+| Parameter    | Type                | Required | Default | Description                                                 |
+| ------------ | ------------------- | -------- | ------- | ----------------------------------------------------------- |
+| `query`      | string              | ✓        | —       | Semantic search query (max 500 chars)                       |
+| `limit`      | number              |          | 3       | Number of results (max 10)                                  |
+| `since`      | string              |          | —       | Filter commits after this ISO 8601 date (e.g. `2024-01-01`) |
+| `author`     | string              |          | —       | Filter by author name or email substring                    |
+| `format`     | `"xml"` \| `"json"` |          | `"xml"` | Output format                                               |
+| `max_tokens` | number              |          | 4096    | Maximum response tokens                                     |
 
 **Example call:**
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "lore_why",
-    "arguments": {
-      "query": "why did we switch to async runtime",
-      "limit": 5,
-      "since": "2024-01-01"
-    }
-  }
+	"jsonrpc": "2.0",
+	"id": 1,
+	"method": "tools/call",
+	"params": {
+		"name": "lore_why",
+		"arguments": {
+			"query": "why did we switch to async runtime",
+			"limit": 5,
+			"since": "2024-01-01"
+		}
+	}
 }
 ```
 
@@ -135,27 +138,27 @@ Find semantic ownership of a file or function — shows which authors made the m
 
 **Input schema:**
 
-| Parameter | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `file` | string | ✓ | — | File path to analyze (relative to repo root) |
-| `fn` | string | | — | Function name to focus on |
-| `risk` | boolean | | false | Include risk score per author |
+| Parameter | Type    | Required | Default | Description                                  |
+| --------- | ------- | -------- | ------- | -------------------------------------------- |
+| `file`    | string  | ✓        | —       | File path to analyze (relative to repo root) |
+| `fn`      | string  |          | —       | Function name to focus on                    |
+| `risk`    | boolean |          | false   | Include risk score per author                |
 
 **Example call:**
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 2,
-  "method": "tools/call",
-  "params": {
-    "name": "lore_blame",
-    "arguments": {
-      "file": "src/auth.rs",
-      "fn": "verify_token",
-      "risk": true
-    }
-  }
+	"jsonrpc": "2.0",
+	"id": 2,
+	"method": "tools/call",
+	"params": {
+		"name": "lore_blame",
+		"arguments": {
+			"file": "src/auth.rs",
+			"fn": "verify_token",
+			"risk": true
+		}
+	}
 }
 ```
 
@@ -167,26 +170,26 @@ Search git history and (optionally) group the results by **commit intent** (feat
 
 **Input schema:**
 
-| Parameter | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `query` | string | ✓ | — | Search query |
-| `since` | string | | — | Filter commits after this ISO 8601 date |
-| `by_intent` | boolean | | false | Group results by intent classification |
+| Parameter   | Type    | Required | Default | Description                             |
+| ----------- | ------- | -------- | ------- | --------------------------------------- |
+| `query`     | string  | ✓        | —       | Search query                            |
+| `since`     | string  |          | —       | Filter commits after this ISO 8601 date |
+| `by_intent` | boolean |          | false   | Group results by intent classification  |
 
 **Example call:**
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 3,
-  "method": "tools/call",
-  "params": {
-    "name": "lore_log",
-    "arguments": {
-      "query": "authentication changes",
-      "by_intent": true
-    }
-  }
+	"jsonrpc": "2.0",
+	"id": 3,
+	"method": "tools/call",
+	"params": {
+		"name": "lore_log",
+		"arguments": {
+			"query": "authentication changes",
+			"by_intent": true
+		}
+	}
 }
 ```
 
@@ -198,25 +201,25 @@ Find which commit likely introduced a bug. Performs semantic search against the 
 
 **Input schema:**
 
-| Parameter | Type | Required | Default | Description |
-|---|---|---|---|---|
-| `bug_description` | string | ✓ | — | Natural-language description of the bug |
-| `limit` | number | | 5 | Max candidates to return |
+| Parameter         | Type   | Required | Default | Description                             |
+| ----------------- | ------ | -------- | ------- | --------------------------------------- |
+| `bug_description` | string | ✓        | —       | Natural-language description of the bug |
+| `limit`           | number |          | 5       | Max candidates to return                |
 
 **Example call:**
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 4,
-  "method": "tools/call",
-  "params": {
-    "name": "lore_bisect",
-    "arguments": {
-      "bug_description": "login fails with OAuth providers after the JWT refactor",
-      "limit": 3
-    }
-  }
+	"jsonrpc": "2.0",
+	"id": 4,
+	"method": "tools/call",
+	"params": {
+		"name": "lore_bisect",
+		"arguments": {
+			"bug_description": "login fails with OAuth providers after the JWT refactor",
+			"limit": 3
+		}
+	}
 }
 ```
 
@@ -232,13 +235,13 @@ Get current lore index status — whether it is indexed, up to date, and how man
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 5,
-  "method": "tools/call",
-  "params": {
-    "name": "lore_status",
-    "arguments": {}
-  }
+	"jsonrpc": "2.0",
+	"id": 5,
+	"method": "tools/call",
+	"params": {
+		"name": "lore_status",
+		"arguments": {}
+	}
 }
 ```
 
@@ -246,10 +249,10 @@ Get current lore index status — whether it is indexed, up to date, and how man
 
 ```json
 {
-  "indexed": true,
-  "commit_count": 1247,
-  "last_indexed_at": "2024-06-10T14:32:00Z",
-  "index_age_hours": 0.4
+	"indexed": true,
+	"commit_count": 1247,
+	"last_indexed_at": "2024-06-10T14:32:00Z",
+	"index_age_hours": 0.4
 }
 ```
 
@@ -259,23 +262,23 @@ Get current lore index status — whether it is indexed, up to date, and how man
 
 The server implements these standard MCP methods:
 
-| Method | Description |
-|---|---|
-| `initialize` | Handshake — returns `serverInfo` and `capabilities` |
+| Method       | Description                                            |
+| ------------ | ------------------------------------------------------ |
+| `initialize` | Handshake — returns `serverInfo` and `capabilities`    |
 | `tools/list` | Returns the 5 tool definitions with full input schemas |
-| `tools/call` | Invoke a tool by name |
+| `tools/call` | Invoke a tool by name                                  |
 
 ### `initialize` example
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 0,
-  "method": "initialize",
-  "params": {
-    "protocolVersion": "2024-11-05",
-    "clientInfo": { "name": "claude-code", "version": "1.0" }
-  }
+	"jsonrpc": "2.0",
+	"id": 0,
+	"method": "initialize",
+	"params": {
+		"protocolVersion": "2024-11-05",
+		"clientInfo": { "name": "claude-code", "version": "1.0" }
+	}
 }
 ```
 
@@ -283,13 +286,13 @@ Response:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 0,
-  "result": {
-    "protocolVersion": "2024-11-05",
-    "serverInfo": { "name": "lore", "version": "0.1.0" },
-    "capabilities": { "tools": {} }
-  }
+	"jsonrpc": "2.0",
+	"id": 0,
+	"result": {
+		"protocolVersion": "2024-11-05",
+		"serverInfo": { "name": "lore", "version": "0.1.0" },
+		"capabilities": { "tools": {} }
+	}
 }
 ```
 
@@ -309,25 +312,27 @@ When the index is not yet built (e.g., `lore index` is still running), every too
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "content": [{
-      "type": "text",
-      "text": "{\"status\":\"initializing\",\"message\":\"lore index is being built. Please wait.\",\"eta_seconds\":15}"
-    }]
-  }
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+		"content": [
+			{
+				"type": "text",
+				"text": "{\"status\":\"initializing\",\"message\":\"lore index is being built. Please wait.\",\"eta_seconds\":15}"
+			}
+		]
+	}
 }
 ```
 
 Standard JSON-RPC error codes:
 
-| Code | Meaning |
-|---|---|
-| `-32700` | Parse error (malformed JSON) |
-| `-32600` | Invalid request |
-| `-32601` | Method not found |
-| `-32602` | Invalid params |
+| Code     | Meaning                                           |
+| -------- | ------------------------------------------------- |
+| `-32700` | Parse error (malformed JSON)                      |
+| `-32600` | Invalid request                                   |
+| `-32601` | Method not found                                  |
+| `-32602` | Invalid params                                    |
 | `-32000` | Server error (rate limit, timeout, index missing) |
 
 ---
@@ -336,11 +341,11 @@ Standard JSON-RPC error codes:
 
 When the VS Code extension is installed and a workspace is open, it automatically registers the lore MCP server with every supported AI agent config file it finds on disk:
 
-| Agent | Config file |
-|---|---|
+| Agent       | Config file                            |
+| ----------- | -------------------------------------- |
 | Claude Code | `~/.claude/claude_desktop_config.json` |
-| Cursor | `~/.cursor/mcp.json` |
-| Windsurf | `~/.windsurf/mcp.json` |
+| Cursor      | `~/.cursor/mcp.json`                   |
+| Windsurf    | `~/.windsurf/mcp.json`                 |
 
 The extension writes the entry only if the config directory already exists (i.e., the agent is installed). The lore binary path is resolved per platform.
 
@@ -358,13 +363,13 @@ Disable this behaviour in VS Code settings:
 
 ```json
 {
-  "mcpServers": {
-    "lore": {
-      "command": "lore",
-      "args": ["serve"],
-      "env": {}
-    }
-  }
+	"mcpServers": {
+		"lore": {
+			"command": "lore",
+			"args": ["serve"],
+			"env": {}
+		}
+	}
 }
 ```
 
@@ -372,12 +377,12 @@ Disable this behaviour in VS Code settings:
 
 ```json
 {
-  "mcpServers": {
-    "lore": {
-      "command": "lore",
-      "args": ["serve"]
-    }
-  }
+	"mcpServers": {
+		"lore": {
+			"command": "lore",
+			"args": ["serve"]
+		}
+	}
 }
 ```
 
@@ -385,12 +390,12 @@ Disable this behaviour in VS Code settings:
 
 ```json
 {
-  "mcpServers": {
-    "lore": {
-      "command": "lore",
-      "args": ["serve"]
-    }
-  }
+	"mcpServers": {
+		"lore": {
+			"command": "lore",
+			"args": ["serve"]
+		}
+	}
 }
 ```
 
@@ -398,13 +403,13 @@ Disable this behaviour in VS Code settings:
 
 ```json
 {
-  "servers": {
-    "lore": {
-      "type": "stdio",
-      "command": "lore",
-      "args": ["serve"]
-    }
-  }
+	"servers": {
+		"lore": {
+			"type": "stdio",
+			"command": "lore",
+			"args": ["serve"]
+		}
+	}
 }
 ```
 

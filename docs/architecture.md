@@ -67,15 +67,15 @@ lore-security
 
 ## Crate Summaries
 
-| Crate | Responsibility |
-|---|---|
-| `lore-core` | Shared `CommitDoc`, `CommitIntent`, `SearchResult`, `LoreConfig`, `LoreError`, `OutputFormat` |
-| `lore-security` | `SecretRedactor` (14 patterns), `safe_index_path` (path traversal prevention) |
-| `lore-git` | Reads git history via `git2`; extracts diffs, file lists, linked issues/PRs |
-| `lore-index` | `IndexStore` (SQLite WAL), `Embedder` (all-MiniLM-L6-v2), `BM25Index`, `search()` pipeline, `Reranker` |
-| `lore-output` | `format_text`, `format_xml`, `format_json` for `SearchResult` slices |
-| `lore-mcp` | JSON-RPC 2.0 `stdio` server, 5 tool handlers, rate limiter, auto-init detection |
-| `lore-cli` | `clap` command definitions; thin wrappers calling the other crates; git hooks; shell completions |
+| Crate           | Responsibility                                                                                         |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| `lore-core`     | Shared `CommitDoc`, `CommitIntent`, `SearchResult`, `LoreConfig`, `LoreError`, `OutputFormat`          |
+| `lore-security` | `SecretRedactor` (14 patterns), `safe_index_path` (path traversal prevention)                          |
+| `lore-git`      | Reads git history via `git2`; extracts diffs, file lists, linked issues/PRs                            |
+| `lore-index`    | `IndexStore` (SQLite WAL), `Embedder` (all-MiniLM-L6-v2), `BM25Index`, `search()` pipeline, `Reranker` |
+| `lore-output`   | `format_text`, `format_xml`, `format_json` for `SearchResult` slices                                   |
+| `lore-mcp`      | JSON-RPC 2.0 `stdio` server, 5 tool handlers, rate limiter, auto-init detection                        |
+| `lore-cli`      | `clap` command definitions; thin wrappers calling the other crates; git hooks; shell completions       |
 
 ---
 
@@ -83,25 +83,25 @@ lore-security
 
 Every indexed commit is stored as a `CommitDoc` struct:
 
-| Field | Type | Description |
-|---|---|---|
-| `hash` | `String` | Full 40-char SHA-1 |
-| `short_hash` | `String` | 7-char display hash |
-| `message` | `String` | Sanitized commit subject line |
-| `body` | `Option<String>` | Sanitized full message body (if present) |
-| `diff_summary` | `String` | Per-file intent summaries after secret redaction — raw diffs are **never** stored |
-| `author` | `String` | Display name only — email is **never** stored |
-| `timestamp` | `i64` | Unix epoch seconds |
-| `files_changed` | `Vec<String>` | File paths touched |
-| `insertions` | `u32` | Lines added |
-| `deletions` | `u32` | Lines removed |
-| `linked_issues` | `Vec<String>` | Parsed from "fixes #234", "closes #45" |
-| `linked_prs` | `Vec<String>` | Parsed from "PR #123" |
-| `intent` | `CommitIntent` | Detected from conventional commit prefix + diff |
-| `risk_score` | `f32` | 0.0–1.0; computed from file sensitivity + churn + deletion ratio |
-| `branch` | `String` | Branch the commit was indexed from |
-| `injection_flagged` | `bool` | LLM steering pattern detected in commit text |
-| `secrets_redacted` | `u32` | Count of redacted secret patterns (not the values) |
+| Field               | Type             | Description                                                                       |
+| ------------------- | ---------------- | --------------------------------------------------------------------------------- |
+| `hash`              | `String`         | Full 40-char SHA-1                                                                |
+| `short_hash`        | `String`         | 7-char display hash                                                               |
+| `message`           | `String`         | Sanitized commit subject line                                                     |
+| `body`              | `Option<String>` | Sanitized full message body (if present)                                          |
+| `diff_summary`      | `String`         | Per-file intent summaries after secret redaction — raw diffs are **never** stored |
+| `author`            | `String`         | Display name only — email is **never** stored                                     |
+| `timestamp`         | `i64`            | Unix epoch seconds                                                                |
+| `files_changed`     | `Vec<String>`    | File paths touched                                                                |
+| `insertions`        | `u32`            | Lines added                                                                       |
+| `deletions`         | `u32`            | Lines removed                                                                     |
+| `linked_issues`     | `Vec<String>`    | Parsed from "fixes #234", "closes #45"                                            |
+| `linked_prs`        | `Vec<String>`    | Parsed from "PR #123"                                                             |
+| `intent`            | `CommitIntent`   | Detected from conventional commit prefix + diff                                   |
+| `risk_score`        | `f32`            | 0.0–1.0; computed from file sensitivity + churn + deletion ratio                  |
+| `branch`            | `String`         | Branch the commit was indexed from                                                |
+| `injection_flagged` | `bool`           | LLM steering pattern detected in commit text                                      |
+| `secrets_redacted`  | `u32`            | Count of redacted secret patterns (not the values)                                |
 
 ### CommitIntent variants
 
@@ -121,16 +121,17 @@ Each `(repo, branch)` pair gets its own SQLite database at:
 
 SQLite is opened in **WAL (Write-Ahead Log)** mode for concurrent reads. Tables:
 
-| Table | Purpose |
-|---|---|
-| `commits` | One row per `CommitDoc`; all metadata fields |
-| `commit_embeddings` | `BLOB` of packed `f32` values (384 dimensions) per hash |
-| `bm25_terms` | `(hash, term, tf)` — per-document term frequencies |
-| `bm25_doc_freq` | `(term, doc_freq, total_docs)` — corpus-level document frequencies |
-| `file_signals` | `(file_path, commit_hash, churn_score)` — per-file churn for blame |
-| `meta` | Key-value pairs; stores `schema_version`, `last_indexed_commit` |
+| Table               | Purpose                                                            |
+| ------------------- | ------------------------------------------------------------------ |
+| `commits`           | One row per `CommitDoc`; all metadata fields                       |
+| `commit_embeddings` | `BLOB` of packed `f32` values (384 dimensions) per hash            |
+| `bm25_terms`        | `(hash, term, tf)` — per-document term frequencies                 |
+| `bm25_doc_freq`     | `(term, doc_freq, total_docs)` — corpus-level document frequencies |
+| `file_signals`      | `(file_path, commit_hash, churn_score)` — per-file churn for blame |
+| `meta`              | Key-value pairs; stores `schema_version`, `last_indexed_commit`    |
 
 Indexes:
+
 - `idx_commits_timestamp` — for recency filtering
 - `idx_commits_author` — for author filtering
 - `idx_commits_intent` — for intent grouping
@@ -213,20 +214,20 @@ where **k = 60.0** (standard RRF constant). Documents appearing in only one list
 
 Applied after fusion, before boosts:
 
-| Filter | Activated by |
-|---|---|
-| `since` | `--since <date>` / `since` tool parameter |
-| `until` | `--until <date>` |
-| `author` | `--author <name>` / `author` tool parameter |
+| Filter   | Activated by                                          |
+| -------- | ----------------------------------------------------- |
+| `since`  | `--since <date>` / `since` tool parameter             |
+| `until`  | `--until <date>`                                      |
+| `author` | `--author <name>` / `author` tool parameter           |
 | `module` | `--module <path>` (filters by `files_changed` prefix) |
 
 ### 5. Boosts
 
-| Boost | Multiplier | Condition |
-|---|---|---|
-| Recency | ×1.2 | Commit is within the last 30 days |
-| Exact match | ×1.5 | All query words appear verbatim in the commit message |
-| Security | ×1.3 | Query contains security keywords (`security`, `vuln`, `cve`, `exploit`, `attack`, `auth`) |
+| Boost       | Multiplier | Condition                                                                                 |
+| ----------- | ---------- | ----------------------------------------------------------------------------------------- |
+| Recency     | ×1.2       | Commit is within the last 30 days                                                         |
+| Exact match | ×1.5       | All query words appear verbatim in the commit message                                     |
+| Security    | ×1.3       | Query contains security keywords (`security`, `vuln`, `cve`, `exploit`, `attack`, `auth`) |
 
 ### 6. Token Budget
 

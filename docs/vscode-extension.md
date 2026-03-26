@@ -73,14 +73,14 @@ When the extension activates, it performs these steps in order:
 
 The status bar item in the bottom-left of VS Code reflects the current state of the lore index. Click it to run `lore doctor`.
 
-| State | Display | Meaning |
-|---|---|---|
-| `indexing` | `⟳ lore: indexing...` (spinner) | Full index build in progress |
-| `reindexing` | `⟳ lore: ↻ <branch>` (spinner) | Delta reindex on branch switch |
-| `ready` | `✓ lore: <branch> ✓ <N>MB` | Index ready; shows branch and size |
-| `error` | `⚠ lore: ⚠ <message>` | An error occurred; click for details |
-| `mcp_down` | `✗ lore: MCP ✗` | MCP server health check failed |
-| `no_index` | `⊘ lore: not indexed` | No index found; run `lore init` |
+| State        | Display                         | Meaning                              |
+| ------------ | ------------------------------- | ------------------------------------ |
+| `indexing`   | `⟳ lore: indexing...` (spinner) | Full index build in progress         |
+| `reindexing` | `⟳ lore: ↻ <branch>` (spinner)  | Delta reindex on branch switch       |
+| `ready`      | `✓ lore: <branch> ✓ <N>MB`      | Index ready; shows branch and size   |
+| `error`      | `⚠ lore: ⚠ <message>`           | An error occurred; click for details |
+| `mcp_down`   | `✗ lore: MCP ✗`                 | MCP server health check failed       |
+| `no_index`   | `⊘ lore: not indexed`           | No index found; run `lore init`      |
 
 The extension polls `lore _health` every **30 seconds** to keep the status bar up to date.
 
@@ -90,10 +90,10 @@ The extension polls `lore _health` every **30 seconds** to keep the status bar u
 
 Three commands are available in the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
 
-| Command | Command ID | Description |
-|---|---|---|
-| **lore: Run Doctor** | `lore.doctor` | Runs `lore doctor` and shows a notification with any issues found |
-| **lore: Show Status** | `lore.status` | Opens an output channel and prints the full `lore doctor` output |
+| Command                     | Command ID     | Description                                                                   |
+| --------------------------- | -------------- | ----------------------------------------------------------------------------- |
+| **lore: Run Doctor**        | `lore.doctor`  | Runs `lore doctor` and shows a notification with any issues found             |
+| **lore: Show Status**       | `lore.status`  | Opens an output channel and prints the full `lore doctor` output              |
 | **lore: Reindex Workspace** | `lore.reindex` | Manually triggers `lore init --background --silent` for the current workspace |
 
 ---
@@ -122,13 +122,13 @@ The extension manages the lore binary automatically. On first activation (or whe
 
 Supported platforms:
 
-| Platform | Architecture | Binary name |
-|---|---|---|
-| Linux | x86_64 | `lore-linux-x86_64` |
-| Linux | ARM64 | `lore-linux-aarch64` |
-| macOS | ARM64 (Apple Silicon) | `lore-darwin-arm64` |
-| macOS | x86_64 (Intel) | `lore-darwin-x86_64` |
-| Windows | x86_64 | `lore-windows-x86_64.exe` |
+| Platform | Architecture          | Binary name               |
+| -------- | --------------------- | ------------------------- |
+| Linux    | x86_64                | `lore-linux-x86_64`       |
+| Linux    | ARM64                 | `lore-linux-aarch64`      |
+| macOS    | ARM64 (Apple Silicon) | `lore-darwin-arm64`       |
+| macOS    | x86_64 (Intel)        | `lore-darwin-x86_64`      |
+| Windows  | x86_64                | `lore-windows-x86_64.exe` |
 
 If the platform is not supported, an error notification is shown and the extension does not activate further.
 
@@ -140,11 +140,11 @@ The binary is stored in VS Code's global extension storage — not in `PATH` —
 
 When `lore.autoRegisterMCP` is `true` (default), the extension automatically adds the lore MCP server entry to every AI agent config file whose **parent directory exists** on disk. This means the agent must already be installed; the extension will not create directories.
 
-| Agent | Config file written |
-|---|---|
+| Agent       | Config file written                    |
+| ----------- | -------------------------------------- |
 | Claude Code | `~/.claude/claude_desktop_config.json` |
-| Cursor | `~/.cursor/mcp.json` |
-| Windsurf | `~/.windsurf/mcp.json` |
+| Cursor      | `~/.cursor/mcp.json`                   |
+| Windsurf    | `~/.windsurf/mcp.json`                 |
 
 The extension merges the lore entry into the existing config — it does not overwrite other MCP servers. If the entry is already present and correct, it is left unchanged.
 
@@ -162,14 +162,14 @@ For manual configuration instructions, see [docs/mcp.md](mcp.md#manual-agent-con
 
 All settings are under the `lore.` namespace:
 
-| Setting | Type | Default | Description |
-|---|---|---|---|
-| `lore.autoRegisterMCP` | boolean | `true` | Auto-register lore MCP with Claude Code, Cursor, and Windsurf |
-| `lore.cleanupAfterDays` | number | `7` | Delete stale branch indices after N days of inactivity |
-| `lore.outputFormat` | `"text"` \| `"xml"` \| `"json"` | `"xml"` | Default output format for MCP responses |
-| `lore.enableReranker` | boolean | `false` | Enable cross-encoder reranking (~50 ms added latency, better accuracy) |
-| `lore.indexOnActivation` | boolean | `true` | Automatically index the workspace when VS Code opens |
-| `lore.showStatusBar` | boolean | `true` | Show the lore status bar item |
+| Setting                  | Type                            | Default | Description                                                            |
+| ------------------------ | ------------------------------- | ------- | ---------------------------------------------------------------------- |
+| `lore.autoRegisterMCP`   | boolean                         | `true`  | Auto-register lore MCP with Claude Code, Cursor, and Windsurf          |
+| `lore.cleanupAfterDays`  | number                          | `7`     | Delete stale branch indices after N days of inactivity                 |
+| `lore.outputFormat`      | `"text"` \| `"xml"` \| `"json"` | `"xml"` | Default output format for MCP responses                                |
+| `lore.enableReranker`    | boolean                         | `false` | Enable cross-encoder reranking (~50 ms added latency, better accuracy) |
+| `lore.indexOnActivation` | boolean                         | `true`  | Automatically index the workspace when VS Code opens                   |
+| `lore.showStatusBar`     | boolean                         | `true`  | Show the lore status bar item                                          |
 
 ---
 
