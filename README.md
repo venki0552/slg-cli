@@ -61,13 +61,15 @@ cargo build --release
 
 ```bash
 cd /path/to/your/repo
-lore init          # index history, install git hooks, register MCP
-lore why "your question here"
-lore doctor        # check setup health
-lore serve         # start MCP server for AI agents
+lore init                        # index history, install git hooks, register MCP
+lore why "your question here"    # search git history semantically
+lore doctor                      # check setup health
+lore serve                       # start MCP server for AI agents
 ```
 
 On first `lore init` the `all-MiniLM-L6-v2` embedding model (~90 MB) is downloaded to `~/.lore/models/` and cached.
+
+See the **[Getting Started guide](docs/getting-started.md)** for step-by-step installation on all platforms, AI agent setup, and troubleshooting.
 
 ---
 
@@ -75,14 +77,15 @@ On first `lore init` the `all-MiniLM-L6-v2` embedding model (~90 MB) is download
 
 Full reference documentation is in the [`docs/`](docs/commands) folder:
 
-| Document                                      | Description                                                        |
-| --------------------------------------------- | ------------------------------------------------------------------ |
-| [Commands](docs/commands.md)                  | Every CLI command, all flags, and examples                         |
-| [MCP Integration](docs/mcp.md)                | Connecting lore to Claude Code, Cursor, Windsurf, and other agents |
-| [Configuration](docs/configuration.md)        | `~/.lore/config.toml` reference and VS Code settings               |
-| [Architecture](docs/architecture.md)          | Crate structure, data model, and search pipeline                   |
-| [Security](docs/security.md)                  | Threat model, secret redaction, and injection defense              |
-| [VS Code Extension](docs/vscode-extension.md) | Building and using the VS Code plugin                              |
+| Document                                          | Description                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------ |
+| [Getting Started](docs/getting-started.md)        | Installation on all platforms, first run, AI agent setup           |
+| [Commands](docs/commands.md)                      | Every CLI command, all flags, and examples                         |
+| [MCP Integration](docs/mcp.md)                    | Connecting lore to Claude Code, Cursor, Windsurf, and other agents |
+| [Configuration](docs/configuration.md)            | `~/.lore/config.toml` reference and VS Code settings               |
+| [Architecture](docs/architecture.md)              | Crate structure, data model, and search pipeline                   |
+| [Security](docs/security.md)                      | Threat model, secret redaction, and injection defense              |
+| [VS Code Extension](docs/vscode-extension.md)     | Building and using the VS Code plugin                              |
 
 ---
 

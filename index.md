@@ -7,11 +7,11 @@ hero:
   tagline: Transform your git history into a queryable knowledge base. Serve ground truth to AI agents in &lt;200ms — fully local, fully offline.
   actions:
     - theme: brand
-      text: Browse Commands →
-      link: /docs/commands
+      text: Get Started →
+      link: /docs/getting-started
     - theme: alt
-      text: MCP Integration
-      link: /docs/mcp
+      text: Commands
+      link: /docs/commands
     - theme: alt
       text: GitHub
       link: https://github.com/venki0552/lore-cli

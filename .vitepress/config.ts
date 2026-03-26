@@ -26,6 +26,7 @@ export default defineConfig({
     logo: { light: '/logo-light.svg', dark: '/logo-dark.svg', alt: 'lore' },
 
     nav: [
+      { text: 'Get Started', link: '/docs/getting-started' },
       { text: 'Commands', link: '/docs/commands' },
       { text: 'MCP', link: '/docs/mcp' },
       { text: 'Architecture', link: '/docs/architecture' },
@@ -43,6 +44,7 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Introduction', link: '/' },
+          { text: 'Installation & Setup', link: '/docs/getting-started' },
           { text: 'Commands', link: '/docs/commands' },
           { text: 'Configuration', link: '/docs/configuration' },
         ],
