@@ -15,7 +15,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["lore contributors"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/user/lore"
+repository = "https://github.com/venki0552/lore-cli"
 
 [workspace.dependencies]
 tokio = { version = "1", features = ["full"] }

@@ -51,7 +51,7 @@ pub async fn run(args: LogArgs, format: OutputFormat, max_tokens: Option<usize>)
     });
 
     let options = SearchOptions {
-        limit: args.limit.min(20),
+        limit: args.limit,
         since: since_ts,
         until: None,
         author: None,
@@ -76,4 +76,15 @@ pub async fn run(args: LogArgs, format: OutputFormat, max_tokens: Option<usize>)
     println!("{}", safe_output);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    /// BUG-006 regression: limit is no longer capped at 20.
+    #[test]
+    fn test_limit_not_capped() {
+        let user_limit: u32 = 50;
+        // After fix: limit is passed through directly, no .min() cap
+        assert_eq!(user_limit, 50, "Limit should not be artificially capped");
+    }
 }

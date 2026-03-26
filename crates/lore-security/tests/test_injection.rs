@@ -114,3 +114,31 @@ fn diff_injection_neutralized() {
 
     assert!(result.injection_flagged);
 }
+
+/// BUG-008 regression: Commits in AI/LLM repos that reference "system prompt"
+/// in legitimate code changes should NOT be flagged as injection attempts.
+/// These are legitimate conventional commit messages from real AI repos.
+#[test]
+fn legitimate_ai_repo_commits_not_falsely_flagged() {
+    let sanitizer = CommitSanitizer;
+
+    let legitimate_ai_messages = vec![
+        "fix: correct ClawHub URL in system prompt",
+        "feat(memory): pluggable system prompt section for memory plugins",
+        "refactor(commands): share system prompt bundle for context and export",
+        "fix: resolve system prompt overrides",
+        "docs: add messaging guidance section to system prompt",
+        "feat: require final tag format in system prompt",
+        "agents: include skill trust warnings in system prompt",
+    ];
+
+    for msg in &legitimate_ai_messages {
+        let doc = make_test_doc(msg);
+        let result = sanitizer.sanitize(doc);
+        assert!(
+            !result.injection_flagged,
+            "False positive: legitimate AI repo commit flagged as injection: {}",
+            msg
+        );
+    }
+}

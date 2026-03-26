@@ -16,7 +16,7 @@ pub struct WhyArgs {
     /// Semantic search query
     pub query: String,
 
-    /// Number of results (default 3, max 10)
+    /// Number of results
     #[arg(long, default_value = "3")]
     pub limit: u32,
 
@@ -78,7 +78,7 @@ pub async fn run(args: WhyArgs, format: OutputFormat, global_max_tokens: Option<
         .unwrap_or(4096);
 
     let options = SearchOptions {
-        limit: args.limit.min(10),
+        limit: args.limit,
         since: since_ts,
         until: None,
         author: args.author,

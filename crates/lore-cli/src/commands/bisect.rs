@@ -38,7 +38,7 @@ pub async fn run(args: BisectArgs, format: OutputFormat, max_tokens: Option<usiz
     let query = format!("bug: {}", args.bug_description);
 
     let options = SearchOptions {
-        limit: args.limit.min(10),
+        limit: args.limit,
         since: None,
         until: None,
         author: None,

@@ -101,11 +101,21 @@ impl CommitSanitizer {
 
     /// Check normalized lowercase text for injection patterns.
     /// SECURITY: Detects known prompt injection patterns in commit messages.
+    /// Uses context-aware detection: keywords like "system prompt" in conventional
+    /// commit messages (fix:, feat:, etc.) are not flagged — only in free-form text.
     fn contains_injection(&self, text: &str) -> bool {
         let lower = text.to_lowercase();
+        let is_code_context = Self::is_code_context(&lower);
+
+        // Keywords that need multiple signals or free-form context
+        let context_sensitive_keywords = ["system prompt"];
 
         for keyword in INJECTION_KEYWORDS {
             if lower.contains(keyword) {
+                // Context-sensitive keywords are only flagged in free-form text
+                if context_sensitive_keywords.contains(keyword) && is_code_context {
+                    continue;
+                }
                 return true;
             }
         }
@@ -129,6 +139,19 @@ impl CommitSanitizer {
         }
 
         false
+    }
+
+    /// Check if text looks like it's in a code/commit context rather than free-form.
+    /// Conventional commit prefixes indicate legitimate developer content.
+    fn is_code_context(lower: &str) -> bool {
+        let commit_prefixes = [
+            "fix:", "feat:", "feature:", "refactor:", "docs:", "doc:", "chore:",
+            "test:", "perf:", "ci:", "build:", "style:", "revert:",
+            "fix(", "feat(", "refactor(", "docs(", "chore(", "test(", "perf(",
+            "agents:", "agents(",
+        ];
+        let first_line = lower.lines().next().unwrap_or(lower);
+        commit_prefixes.iter().any(|p| first_line.starts_with(p))
     }
 
     /// Extract only the safe first line, up to 72 chars, prepend [FLAGGED].

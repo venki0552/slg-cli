@@ -77,6 +77,55 @@ pub fn compute_repo_hash(repo_path: &Path) -> String {
     format!("{:x}", hasher.finalize())
 }
 
+/// Resolve a git ref (HEAD, HEAD~N, branch name, tag, short hash) to a full commit SHA.
+/// Uses git2's revparse to handle all ref formats.
+pub fn resolve_ref(repo_path: &Path, refspec: &str) -> Result<String, LoreError> {
+    let repo = git2::Repository::open(repo_path)
+        .map_err(|e| LoreError::Git(format!("Failed to open repo: {}", e)))?;
+
+    let obj = repo
+        .revparse_single(refspec)
+        .map_err(|e| LoreError::Git(format!("Failed to resolve ref '{}': {}", refspec, e)))?;
+
+    let commit = obj
+        .peel_to_commit()
+        .map_err(|e| LoreError::Git(format!("Ref '{}' does not point to a commit: {}", refspec, e)))?;
+
+    Ok(commit.id().to_string())
+}
+
+/// List commit hashes in the range base..head (exclusive of base, inclusive of head).
+/// Returns commits in reverse chronological order.
+pub fn list_commits_in_range(repo_path: &Path, base: &str, head: &str) -> Result<Vec<String>, LoreError> {
+    let repo = git2::Repository::open(repo_path)
+        .map_err(|e| LoreError::Git(format!("Failed to open repo: {}", e)))?;
+
+    let base_oid = git2::Oid::from_str(base)
+        .map_err(|e| LoreError::Git(format!("Invalid base hash '{}': {}", base, e)))?;
+    let head_oid = git2::Oid::from_str(head)
+        .map_err(|e| LoreError::Git(format!("Invalid head hash '{}': {}", head, e)))?;
+
+    let mut revwalk = repo
+        .revwalk()
+        .map_err(|e| LoreError::Git(format!("Failed to create revwalk: {}", e)))?;
+    revwalk.push(head_oid).map_err(|e| {
+        LoreError::Git(format!("Failed to push head oid: {}", e))
+    })?;
+    revwalk.hide(base_oid).map_err(|e| {
+        LoreError::Git(format!("Failed to hide base oid: {}", e))
+    })?;
+
+    let mut commits = Vec::new();
+    for oid_result in revwalk {
+        let oid = oid_result.map_err(|e| {
+            LoreError::Git(format!("Revwalk error: {}", e))
+        })?;
+        commits.push(oid.to_string());
+    }
+
+    Ok(commits)
+}
+
 /// Detect the base branch for a repo ("main" or "master").
 pub fn detect_base_branch(repo_path: &Path) -> String {
     let repo = match git2::Repository::open(repo_path) {

@@ -36,63 +36,57 @@ pub async fn run(args: CleanupArgs) -> Result<(), LoreError> {
                 continue;
             }
 
-            if let Ok(branches) = std::fs::read_dir(repo_entry.path()) {
-                for branch_entry in branches.flatten() {
-                    let branch_path = branch_entry.path();
-                    if !branch_path.is_dir() {
+            if let Ok(files) = std::fs::read_dir(repo_entry.path()) {
+                for file_entry in files.flatten() {
+                    let file_path = file_entry.path();
+                    // Index files are stored as {branch}.db directly (not in subdirectories)
+                    if file_path.extension().and_then(|e| e.to_str()) != Some("db") {
                         continue;
                     }
 
-                    // Check last modified time of the index db
-                    let db_path = branch_path.join("lore.db");
-                    let should_remove = if db_path.exists() {
-                        match std::fs::metadata(&db_path) {
-                            Ok(m) => match m.modified() {
-                                Ok(modified) => modified < cutoff,
-                                Err(_) => false,
-                            },
+                    let should_remove = match std::fs::metadata(&file_path) {
+                        Ok(m) => match m.modified() {
+                            Ok(modified) => modified < cutoff,
                             Err(_) => false,
-                        }
-                    } else {
-                        // Directory exists but no db — clean it up
-                        true
+                        },
+                        Err(_) => false,
                     };
 
                     if should_remove {
-                        let dir_size = dir_size(&branch_path);
+                        let file_size = std::fs::metadata(&file_path).map(|m| m.len()).unwrap_or(0);
 
                         if args.dry_run {
                             println!(
                                 "  {} Would remove: {} ({:.1} KB)",
                                 "→".cyan(),
-                                branch_path.display(),
-                                dir_size as f64 / 1024.0
+                                file_path.display(),
+                                file_size as f64 / 1024.0
                             );
                         } else {
-                            if let Err(e) = std::fs::remove_dir_all(&branch_path) {
-                                eprintln!("  {} Failed to remove {}: {}", "✗".red(), branch_path.display(), e);
+                            if let Err(e) = std::fs::remove_file(&file_path) {
+                                eprintln!("  {} Failed to remove {}: {}", "✗".red(), file_path.display(), e);
                                 continue;
                             }
                             println!(
                                 "  {} Removed: {} ({:.1} KB)",
                                 "✓".green(),
-                                branch_path.display(),
-                                dir_size as f64 / 1024.0
+                                file_path.display(),
+                                file_size as f64 / 1024.0
                             );
                         }
 
-                        freed_bytes += dir_size;
+                        freed_bytes += file_size;
                         removed += 1;
                     }
                 }
+            }
 
-                // Clean up empty repo directories
-                if !args.dry_run {
-                    let repo_path = repo_entry.path();
-                    if let Ok(mut entries) = std::fs::read_dir(&repo_path) {
-                        if entries.next().is_none() {
-                            let _ = std::fs::remove_dir(&repo_path);
-                        }
+            // Clean up empty repo directories
+            if !args.dry_run {
+                let repo_path = repo_entry.path();
+                if let Ok(mut entries) = std::fs::read_dir(&repo_path) {
+                    if entries.next().is_none() {
+                        let _ = std::fs::remove_dir(&repo_path);
                     }
                 }
             }
@@ -112,21 +106,4 @@ pub async fn run(args: CleanupArgs) -> Result<(), LoreError> {
     }
 
     Ok(())
-}
-
-fn dir_size(path: &std::path::Path) -> u64 {
-    let mut total = 0u64;
-    if let Ok(entries) = std::fs::read_dir(path) {
-        for entry in entries.flatten() {
-            let p = entry.path();
-            if p.is_file() {
-                if let Ok(m) = std::fs::metadata(&p) {
-                    total += m.len();
-                }
-            } else if p.is_dir() {
-                total += dir_size(&p);
-            }
-        }
-    }
-    total
 }

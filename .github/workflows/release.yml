@@ -39,18 +39,25 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }}
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+      - name: Rename binary to platform-specific name (Unix)
+        if: runner.os != 'Windows'
+        run: cp target/${{ matrix.target }}/release/lore ${{ matrix.name }}
+      - name: Rename binary to platform-specific name (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Copy-Item target/${{ matrix.target }}/release/lore.exe ${{ matrix.name }}
       - name: Calculate checksum (Unix)
         if: runner.os != 'Windows'
-        run: sha256sum target/${{ matrix.target }}/release/lore > ${{ matrix.name }}.sha256
+        run: sha256sum ${{ matrix.name }} > ${{ matrix.name }}.sha256
       - name: Calculate checksum (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $hash = (Get-FileHash target/${{ matrix.target }}/release/lore.exe -Algorithm SHA256).Hash.ToLower()
-          "$hash  lore.exe" | Out-File -Encoding ascii ${{ matrix.name }}.sha256
+          $hash = (Get-FileHash ${{ matrix.name }} -Algorithm SHA256).Hash.ToLower()
+          "$hash  ${{ matrix.name }}" | Out-File -Encoding ascii ${{ matrix.name }}.sha256
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            target/${{ matrix.target }}/release/${{ matrix.name }}
+            ${{ matrix.name }}
             ${{ matrix.name }}.sha256

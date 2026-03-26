@@ -28,3 +28,4 @@ plugin/*.vsix
 # Env
 .env
 .env.local
+/tests

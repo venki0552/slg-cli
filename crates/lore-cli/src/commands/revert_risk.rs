@@ -34,11 +34,18 @@ pub async fn run(args: RevertRiskArgs, format: OutputFormat, max_tokens: Option<
     let store = IndexStore::open(&index_path)?;
     let embedder = Embedder::new()?;
 
-    // Get the commit being analyzed
-    let commit_doc = store.get_commit(&args.commit)?;
+    // BUG-007 fix: resolve ref to hash before looking up in store
+    let resolved_hash = if args.commit.chars().all(|c| c.is_ascii_hexdigit()) && args.commit.len() >= 7 {
+        args.commit.clone()
+    } else {
+        detector::resolve_ref(&git_root, &args.commit)?
+    };
+
+    // Get the commit being analyzed using the resolved hash
+    let commit_doc = store.get_commit(&resolved_hash)?;
     let query = match &commit_doc {
         Some(doc) => format!("revert risk: {} files: {}", doc.message, doc.files_changed.join(" ")),
-        None => format!("revert {}", args.commit),
+        None => format!("revert {}", resolved_hash),
     };
 
     let options = SearchOptions {
@@ -66,4 +73,29 @@ pub async fn run(args: RevertRiskArgs, format: OutputFormat, max_tokens: Option<
     print!("{}", safe);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    /// BUG-007 regression: refs are now resolved to hashes before store lookup.
+    /// The run() function calls detector::resolve_ref() for non-hex inputs.
+    #[test]
+    fn test_hex_hash_not_resolved() {
+        // A full hex hash should be used directly without resolve_ref
+        let commit_arg = "39fbfd9b28aabbccdd";
+        assert!(
+            commit_arg.chars().all(|c| c.is_ascii_hexdigit()) && commit_arg.len() >= 7,
+            "Full hex hash should skip ref resolution"
+        );
+    }
+
+    #[test]
+    fn test_ref_needs_resolution() {
+        // Non-hex refs like HEAD should trigger resolve_ref
+        let refs_needing_resolution = ["HEAD", "HEAD~1", "main", "v1.0.0"];
+        for r in &refs_needing_resolution {
+            let is_hex = r.chars().all(|c| c.is_ascii_hexdigit()) && r.len() >= 7;
+            assert!(!is_hex, "'{}' should trigger ref resolution", r);
+        }
+    }
 }

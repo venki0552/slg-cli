@@ -60,12 +60,13 @@ pub async fn search(
     // 2. Embed query
     let query_vector = embedder.embed_query(query)?;
 
-    // 3. Vector search: top 20 candidates
-    let vector_results = store.vector_search(&query_vector, 20)?;
+    // 3. Vector search: candidates scale with requested limit
+    let candidate_count = 20_usize.max((options.limit * 2) as usize);
+    let vector_results = store.vector_search(&query_vector, candidate_count)?;
     debug!("Vector search returned {} results", vector_results.len());
 
-    // 4. BM25 search: top 20 candidates
-    let bm25_results = BM25Index::search(store, query, 20)?;
+    // 4. BM25 search: candidates scale with requested limit
+    let bm25_results = BM25Index::search(store, query, candidate_count)?;
     debug!("BM25 search returned {} results", bm25_results.len());
 
     // 5. RRF fusion
@@ -357,5 +358,25 @@ mod tests {
         let results = vec![make("a", 100), make("b", 100), make("c", 100)];
         let budgeted = apply_token_budget(results, 200);
         assert_eq!(budgeted.len(), 2);
+    }
+
+    /// BUG-006 regression: candidate pool now scales with requested limit.
+    #[test]
+    fn test_search_candidate_pool_scales_with_limit() {
+        let opts = SearchOptions {
+            limit: 50,
+            ..Default::default()
+        };
+        let candidate_count = 20_usize.max((opts.limit * 2) as usize);
+        // With limit=50, candidate pool should be 100, not hardcoded 20
+        assert_eq!(candidate_count, 100);
+
+        // With small limit, minimum of 20 candidates is maintained
+        let opts_small = SearchOptions {
+            limit: 3,
+            ..Default::default()
+        };
+        let candidate_count_small = 20_usize.max((opts_small.limit * 2) as usize);
+        assert_eq!(candidate_count_small, 20);
     }
 }

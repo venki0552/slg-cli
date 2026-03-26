@@ -119,7 +119,7 @@ lore is designed with security as a first-class concern:
 # Build
 cargo build --release
 
-# Run tests (137 tests)
+# Run tests
 cargo test --workspace
 
 # Build VS Code plugin

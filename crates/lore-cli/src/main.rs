@@ -138,7 +138,7 @@ async fn main() {
         Commands::Log(args) => commands::log::run(args, format, cli.max_tokens).await,
         Commands::Diff(args) => commands::diff::run(args, format, cli.max_tokens).await,
         Commands::RevertRisk(args) => commands::revert_risk::run(args, format, cli.max_tokens).await,
-        Commands::Status => commands::status::run().await,
+        Commands::Status => commands::status::run(format).await,
         Commands::Cleanup(args) => commands::cleanup::run(args).await,
         Commands::Doctor { fix_all } => commands::doctor::run(fix_all).await,
         Commands::Serve | Commands::Mcp => commands::serve::run().await,
