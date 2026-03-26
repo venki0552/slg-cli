@@ -39,8 +39,7 @@ pub struct InitArgs {
 /// Initialize lore for this repository: index + hooks + MCP registration.
 pub async fn run(args: InitArgs) -> Result<(), LoreError> {
     // 1. Find git root
-    let git_root =
-        detector::find_git_root(&std::env::current_dir().map_err(LoreError::Io)?)?;
+    let git_root = detector::find_git_root(&std::env::current_dir().map_err(LoreError::Io)?)?;
 
     if !args.silent {
         println!("{}", "lore init".bold());
