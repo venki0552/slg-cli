@@ -36,6 +36,7 @@ pub struct InitArgs {
     pub fix_all: bool,
 }
 
+/// Initialize lore for this repository: index + hooks + MCP registration.
 pub async fn run(args: InitArgs) -> Result<(), LoreError> {
     // 1. Find git root
     let git_root = detector::find_git_root(&std::env::current_dir().map_err(|e| {
@@ -93,9 +94,20 @@ pub async fn run(args: InitArgs) -> Result<(), LoreError> {
         }
     }
 
-    // 6. Index info
+    // 6. Index the branch
     let branch = detector::get_current_branch(&git_root).unwrap_or_else(|_| "main".to_string());
     let index_path = paths::safe_index_path(&repo_hash, &branch)?;
+
+    if !args.mcp_only && !args.hooks_only && !args.shell_only {
+        if !args.silent {
+            println!("\nIndexing branch '{}'...", branch);
+        }
+        super::index::run(super::index::IndexArgs {
+            background: args.background,
+            silent: args.silent,
+        })
+        .await?;
+    }
 
     if !args.silent {
         println!("\nIndex path: {}", index_path.display());

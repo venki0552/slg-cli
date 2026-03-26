@@ -371,6 +371,34 @@ impl IndexStore {
             .flatten()
     }
 
+    /// Update metadata after indexing completes.
+    pub fn update_metadata(
+        &self,
+        repo_hash: &str,
+        branch: &str,
+        base_branch: &str,
+    ) -> Result<(), LoreError> {
+        let now = chrono::Utc::now().timestamp();
+        let pairs = [
+            ("repo_hash", repo_hash.to_string()),
+            ("branch", branch.to_string()),
+            ("base_branch", base_branch.to_string()),
+            ("indexed_at", now.to_string()),
+            ("last_accessed", now.to_string()),
+            ("index_version", "1".to_string()),
+            ("model_version", "all-MiniLM-L6-v2".to_string()),
+        ];
+        for (key, value) in &pairs {
+            self.conn
+                .execute(
+                    "INSERT OR REPLACE INTO meta (key, value) VALUES (?1, ?2)",
+                    params![key, value],
+                )
+                .map_err(|e| LoreError::Database(format!("Meta update failed: {}", e)))?;
+        }
+        Ok(())
+    }
+
     /// Get the file size of the .db file.
     pub fn get_size_bytes(&self) -> Result<u64, LoreError> {
         let metadata = std::fs::metadata(&self.path).map_err(|e| {

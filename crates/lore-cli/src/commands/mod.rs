@@ -1,4 +1,14 @@
+pub mod bisect;
+pub mod blame;
+pub mod cleanup;
+pub mod diff;
 pub mod doctor;
+pub mod index;
 pub mod init;
+pub mod log;
+pub mod reindex;
+pub mod revert_risk;
 pub mod serve;
+pub mod status;
+pub mod sync;
 pub mod why;

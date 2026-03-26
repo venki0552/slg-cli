@@ -3,6 +3,7 @@ use lore_core::errors::LoreError;
 use lore_git::{detector, hooks, shell};
 use lore_security::paths;
 
+/// Run health checks and optionally fix issues.
 pub async fn run(fix_all: bool) -> Result<(), LoreError> {
     println!("{}", "lore doctor".bold());
     println!();

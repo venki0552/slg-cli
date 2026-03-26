@@ -1,5 +1,14 @@
 use lore_core::errors::LoreError;
+use lore_core::types::OutputFormat;
+use lore_git::detector;
+use lore_index::embedder::Embedder;
+use lore_index::search::{self, SearchOptions};
+use lore_index::store::IndexStore;
+use lore_output::{json as json_fmt, xml};
+use lore_security::output_guard::OutputGuard;
+use lore_security::paths;
 use serde_json::{json, Value};
+use std::time::Instant;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tracing::{debug, info};
 
@@ -129,69 +138,183 @@ async fn handle_method(method: &str, request: &Value) -> Result<Value, LoreError
 async fn handle_tool_call(tool_name: &str, params: &Value) -> Result<Value, LoreError> {
     let arguments = params.get("arguments").cloned().unwrap_or(json!({}));
 
+    // Try to open index for current repo
+    let cwd = std::env::current_dir().map_err(LoreError::Io)?;
+    let git_root = match detector::find_git_root(&cwd) {
+        Ok(root) => root,
+        Err(_) => {
+            return Ok(json!({
+                "content": [{"type": "text", "text": "Error: not in a git repository. Run `lore init` first."}],
+                "isError": true
+            }));
+        }
+    };
+
+    let repo_hash = detector::compute_repo_hash(&git_root);
+    let branch = detector::get_current_branch(&git_root).unwrap_or_else(|_| "main".to_string());
+    let index_path = paths::safe_index_path(&repo_hash, &branch)?;
+
+    if !index_path.exists() {
+        // Auto-init hint
+        if crate::auto_init::is_indexing() {
+            return Ok(crate::auto_init::initializing_response(tool_name));
+        }
+        return Ok(json!({
+            "content": [{"type": "text", "text": "Index not found. Run `lore init` first."}],
+            "isError": true
+        }));
+    }
+
+    let store = IndexStore::open(&index_path)?;
+
     match tool_name {
         "lore_why" => {
-            let query = arguments
-                .get("query")
-                .and_then(|q| q.as_str())
-                .unwrap_or("");
+            let query = arguments.get("query").and_then(|q| q.as_str()).unwrap_or("");
             if query.is_empty() {
-                return Ok(json!({
-                    "content": [{"type": "text", "text": "Error: query is required"}],
-                    "isError": true
-                }));
+                return Ok(json!({"content": [{"type": "text", "text": "Error: query is required"}], "isError": true}));
+            }
+            if query.len() > 500 {
+                return Ok(json!({"content": [{"type": "text", "text": "Error: query too long (max 500 chars)"}], "isError": true}));
             }
 
-            // Placeholder: actual search requires initialized index + embedder
-            Ok(json!({
-                "content": [{
-                    "type": "text",
-                    "text": format!("lore_why: query received: '{}'. Index not yet loaded — run `lore init` first.", query)
-                }]
-            }))
+            let limit = arguments.get("limit").and_then(|l| l.as_u64()).unwrap_or(3) as u32;
+            let max_tokens = arguments.get("max_tokens").and_then(|t| t.as_u64()).unwrap_or(4096) as usize;
+            let fmt = match arguments.get("format").and_then(|f| f.as_str()) {
+                Some("json") => OutputFormat::Json,
+                _ => OutputFormat::Xml,
+            };
+
+            let embedder = Embedder::new()?;
+            let options = SearchOptions {
+                limit: limit.min(10),
+                since: None,
+                until: None,
+                author: arguments.get("author").and_then(|a| a.as_str()).map(|s| s.to_string()),
+                module: None,
+                max_tokens,
+                enable_reranker: false,
+                format: fmt,
+            };
+
+            let start = Instant::now();
+            let results = search::search(query, &store, &embedder, &options).await?;
+            let latency_ms = start.elapsed().as_millis() as u64;
+
+            let output = match fmt {
+                OutputFormat::Json => json_fmt::format_json(&results, query, latency_ms),
+                _ => xml::format_xml(&results, query, latency_ms),
+            };
+
+            let guard = OutputGuard::new();
+            let safe = guard.check_and_sanitize(&output, MAX_OUTPUT_BYTES);
+
+            Ok(json!({"content": [{"type": "text", "text": safe}]}))
         }
         "lore_blame" => {
-            let file = arguments
-                .get("file")
-                .and_then(|f| f.as_str())
-                .unwrap_or("");
-            Ok(json!({
-                "content": [{
-                    "type": "text",
-                    "text": format!("lore_blame: file '{}' — index not yet loaded.", file)
-                }]
-            }))
+            let file = arguments.get("file").and_then(|f| f.as_str()).unwrap_or("");
+            if file.is_empty() {
+                return Ok(json!({"content": [{"type": "text", "text": "Error: file is required"}], "isError": true}));
+            }
+
+            let query = format!("changes to file {}", file);
+            let embedder = Embedder::new()?;
+            let options = SearchOptions {
+                limit: 10,
+                since: None,
+                until: None,
+                author: None,
+                module: Some(file.to_string()),
+                max_tokens: 4096,
+                enable_reranker: false,
+                format: OutputFormat::Xml,
+            };
+
+            let start = Instant::now();
+            let results = search::search(&query, &store, &embedder, &options).await?;
+            let latency_ms = start.elapsed().as_millis() as u64;
+            let output = xml::format_xml(&results, &query, latency_ms);
+
+            let guard = OutputGuard::new();
+            let safe = guard.check_and_sanitize(&output, MAX_OUTPUT_BYTES);
+
+            Ok(json!({"content": [{"type": "text", "text": safe}]}))
         }
         "lore_log" => {
-            let query = arguments
-                .get("query")
-                .and_then(|q| q.as_str())
-                .unwrap_or("");
-            Ok(json!({
-                "content": [{
-                    "type": "text",
-                    "text": format!("lore_log: query '{}' — index not yet loaded.", query)
-                }]
-            }))
+            let query = arguments.get("query").and_then(|q| q.as_str()).unwrap_or("");
+            if query.is_empty() {
+                return Ok(json!({"content": [{"type": "text", "text": "Error: query is required"}], "isError": true}));
+            }
+
+            let embedder = Embedder::new()?;
+            let options = SearchOptions {
+                limit: 10,
+                since: None,
+                until: None,
+                author: None,
+                module: None,
+                max_tokens: 8192,
+                enable_reranker: false,
+                format: OutputFormat::Xml,
+            };
+
+            let start = Instant::now();
+            let results = search::search(query, &store, &embedder, &options).await?;
+            let latency_ms = start.elapsed().as_millis() as u64;
+            let output = xml::format_xml(&results, query, latency_ms);
+
+            let guard = OutputGuard::new();
+            let safe = guard.check_and_sanitize(&output, MAX_OUTPUT_BYTES);
+
+            Ok(json!({"content": [{"type": "text", "text": safe}]}))
         }
         "lore_bisect" => {
-            let desc = arguments
-                .get("bug_description")
-                .and_then(|d| d.as_str())
-                .unwrap_or("");
-            Ok(json!({
-                "content": [{
-                    "type": "text",
-                    "text": format!("lore_bisect: '{}' — index not yet loaded.", desc)
-                }]
-            }))
+            let desc = arguments.get("bug_description").and_then(|d| d.as_str()).unwrap_or("");
+            if desc.is_empty() {
+                return Ok(json!({"content": [{"type": "text", "text": "Error: bug_description is required"}], "isError": true}));
+            }
+
+            let query = format!("bug: {}", desc);
+            let limit = arguments.get("limit").and_then(|l| l.as_u64()).unwrap_or(5) as u32;
+
+            let embedder = Embedder::new()?;
+            let options = SearchOptions {
+                limit: limit.min(10),
+                since: None,
+                until: None,
+                author: None,
+                module: None,
+                max_tokens: 4096,
+                enable_reranker: false,
+                format: OutputFormat::Xml,
+            };
+
+            let start = Instant::now();
+            let results = search::search(&query, &store, &embedder, &options).await?;
+            let latency_ms = start.elapsed().as_millis() as u64;
+            let output = xml::format_xml(&results, &query, latency_ms);
+
+            let guard = OutputGuard::new();
+            let safe = guard.check_and_sanitize(&output, MAX_OUTPUT_BYTES);
+
+            Ok(json!({"content": [{"type": "text", "text": safe}]}))
         }
-        "lore_status" => Ok(json!({
-            "content": [{
-                "type": "text",
-                "text": "lore status: not initialized. Run `lore init` to start."
-            }]
-        })),
+        "lore_status" => {
+            let all_hashes = store.list_all_hashes()?;
+            let base_branch = detector::detect_base_branch(&git_root);
+            let meta = store.get_metadata(&repo_hash, &branch, &base_branch)?;
+
+            let status = json!({
+                "indexed": true,
+                "branch": branch,
+                "repo_hash": &repo_hash[..8],
+                "commit_count": all_hashes.len(),
+                "size_bytes": meta.size_bytes,
+                "model_version": meta.model_version,
+                "index_version": meta.index_version,
+            });
+
+            Ok(json!({"content": [{"type": "text", "text": serde_json::to_string_pretty(&status).unwrap_or_default()}]}))
+        }
         _ => Ok(json!({
             "content": [{"type": "text", "text": format!("Unknown tool: {}", tool_name)}],
             "isError": true
