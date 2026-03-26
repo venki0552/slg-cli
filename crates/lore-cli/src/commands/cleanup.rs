@@ -64,7 +64,12 @@ pub async fn run(args: CleanupArgs) -> Result<(), LoreError> {
                             );
                         } else {
                             if let Err(e) = std::fs::remove_file(&file_path) {
-                                eprintln!("  {} Failed to remove {}: {}", "✗".red(), file_path.display(), e);
+                                eprintln!(
+                                    "  {} Failed to remove {}: {}",
+                                    "✗".red(),
+                                    file_path.display(),
+                                    e
+                                );
                                 continue;
                             }
                             println!(
@@ -94,9 +99,16 @@ pub async fn run(args: CleanupArgs) -> Result<(), LoreError> {
     }
 
     if removed == 0 {
-        println!("No stale indices found (older than {} days).", args.older_than);
+        println!(
+            "No stale indices found (older than {} days).",
+            args.older_than
+        );
     } else {
-        let action = if args.dry_run { "Would remove" } else { "Removed" };
+        let action = if args.dry_run {
+            "Would remove"
+        } else {
+            "Removed"
+        };
         println!(
             "\n{} {} indices, freeing {:.1} MB",
             action,

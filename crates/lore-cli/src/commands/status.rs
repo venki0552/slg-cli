@@ -67,7 +67,10 @@ pub async fn run(format: OutputFormat) -> Result<(), LoreError> {
                     "total_size_bytes": total_size_bytes,
                 }
             });
-            println!("{}", serde_json::to_string_pretty(&json).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&json).unwrap_or_default()
+            );
         }
         OutputFormat::Xml => {
             println!("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -77,10 +80,16 @@ pub async fn run(format: OutputFormat) -> Result<(), LoreError> {
             println!("  <repo_hash>{}</repo_hash>", &repo_hash[..8]);
             println!("  <indexed>{}</indexed>", indexed);
             println!("  <commit_count>{}</commit_count>", commit_count);
-            println!("  <index_size_bytes>{}</index_size_bytes>", index_size_bytes);
+            println!(
+                "  <index_size_bytes>{}</index_size_bytes>",
+                index_size_bytes
+            );
             println!("  <storage path=\"{}\">", lore_home.display());
             println!("    <total_branches>{}</total_branches>", total_branches);
-            println!("    <total_size_bytes>{}</total_size_bytes>", total_size_bytes);
+            println!(
+                "    <total_size_bytes>{}</total_size_bytes>",
+                total_size_bytes
+            );
             println!("  </storage>");
             println!("</lore_status>");
         }
@@ -111,7 +120,10 @@ pub async fn run(format: OutputFormat) -> Result<(), LoreError> {
             println!();
             println!("Storage:    {}", lore_home.display());
             println!("  Indices:  {} branches indexed", total_branches);
-            println!("  Total:    {:.1} MB", total_size_bytes as f64 / (1024.0 * 1024.0));
+            println!(
+                "  Total:    {:.1} MB",
+                total_size_bytes as f64 / (1024.0 * 1024.0)
+            );
         }
     }
 

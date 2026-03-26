@@ -36,9 +36,8 @@ fn build_hook_block(content: &str) -> String {
 pub fn install_hooks(repo_path: &Path) -> Result<Vec<String>, LoreError> {
     let hooks_dir = repo_path.join(".git").join("hooks");
     if !hooks_dir.exists() {
-        std::fs::create_dir_all(&hooks_dir).map_err(|e| {
-            LoreError::Git(format!("Failed to create hooks dir: {}", e))
-        })?;
+        std::fs::create_dir_all(&hooks_dir)
+            .map_err(|e| LoreError::Git(format!("Failed to create hooks dir: {}", e)))?;
     }
 
     let mut installed = Vec::new();
@@ -68,9 +67,8 @@ pub fn install_hooks(repo_path: &Path) -> Result<Vec<String>, LoreError> {
         } else {
             // Create new hook file
             let new_content = format!("#!/bin/sh\n{}\n", block);
-            std::fs::write(&hook_path, new_content).map_err(|e| {
-                LoreError::Git(format!("Failed to create hook {}: {}", name, e))
-            })?;
+            std::fs::write(&hook_path, new_content)
+                .map_err(|e| LoreError::Git(format!("Failed to create hook {}: {}", name, e)))?;
             debug!("Created hook: {}", name);
         }
 
@@ -78,10 +76,7 @@ pub fn install_hooks(repo_path: &Path) -> Result<Vec<String>, LoreError> {
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            let _ = std::fs::set_permissions(
-                &hook_path,
-                std::fs::Permissions::from_mode(0o755),
-            );
+            let _ = std::fs::set_permissions(&hook_path, std::fs::Permissions::from_mode(0o755));
         }
 
         installed.push(name.to_string());
@@ -116,9 +111,8 @@ pub fn remove_hooks(repo_path: &Path) -> Result<(), LoreError> {
             let _ = std::fs::remove_file(&hook_path);
             debug!("Removed hook file: {}", name);
         } else {
-            std::fs::write(&hook_path, cleaned).map_err(|e| {
-                LoreError::Git(format!("Failed to clean hook {}: {}", name, e))
-            })?;
+            std::fs::write(&hook_path, cleaned)
+                .map_err(|e| LoreError::Git(format!("Failed to clean hook {}: {}", name, e)))?;
             debug!("Removed lore block from hook: {}", name);
         }
     }
@@ -220,7 +214,10 @@ mod tests {
         install_hooks(&path).unwrap();
 
         let content = std::fs::read_to_string(&hook_path).unwrap();
-        assert!(content.contains("my custom hook"), "Existing content preserved");
+        assert!(
+            content.contains("my custom hook"),
+            "Existing content preserved"
+        );
         assert!(content.contains(HOOK_HEADER), "Lore block added");
     }
 

@@ -19,14 +19,12 @@ impl IndexStore {
             })?;
         }
 
-        let conn = Connection::open(path).map_err(|e| {
-            LoreError::Database(format!("Failed to open database: {}", e))
-        })?;
+        let conn = Connection::open(path)
+            .map_err(|e| LoreError::Database(format!("Failed to open database: {}", e)))?;
 
         // Enable WAL mode for concurrent reads
-        conn.execute_batch("PRAGMA journal_mode=WAL;").map_err(|e| {
-            LoreError::Database(format!("Failed to set WAL mode: {}", e))
-        })?;
+        conn.execute_batch("PRAGMA journal_mode=WAL;")
+            .map_err(|e| LoreError::Database(format!("Failed to set WAL mode: {}", e)))?;
 
         let store = Self {
             conn,
@@ -107,27 +105,22 @@ impl IndexStore {
                 "INSERT OR IGNORE INTO meta (key, value) VALUES ('schema_version', '1')",
                 [],
             )
-            .map_err(|e| {
-                LoreError::Database(format!("Failed to set schema version: {}", e))
-            })?;
+            .map_err(|e| LoreError::Database(format!("Failed to set schema version: {}", e)))?;
 
         Ok(())
     }
 
     /// Store a commit document along with its embedding.
     /// Idempotent: skips if hash already exists.
-    pub fn store_commit(
-        &self,
-        doc: &CommitDoc,
-        embedding: &[f32],
-    ) -> Result<(), LoreError> {
+    pub fn store_commit(&self, doc: &CommitDoc, embedding: &[f32]) -> Result<(), LoreError> {
         if self.commit_exists(&doc.hash)? {
             return Ok(());
         }
 
-        let tx = self.conn.unchecked_transaction().map_err(|e| {
-            LoreError::Database(format!("Failed to begin transaction: {}", e))
-        })?;
+        let tx = self
+            .conn
+            .unchecked_transaction()
+            .map_err(|e| LoreError::Database(format!("Failed to begin transaction: {}", e)))?;
 
         let now = chrono::Utc::now().timestamp();
         let files_json = serde_json::to_string(&doc.files_changed).unwrap_or_default();
@@ -168,13 +161,10 @@ impl IndexStore {
             "INSERT INTO commit_embeddings (hash, embedding) VALUES (?1, ?2)",
             params![doc.hash, embedding_bytes],
         )
-        .map_err(|e| {
-            LoreError::Database(format!("Failed to insert embedding: {}", e))
-        })?;
+        .map_err(|e| LoreError::Database(format!("Failed to insert embedding: {}", e)))?;
 
-        tx.commit().map_err(|e| {
-            LoreError::Database(format!("Failed to commit transaction: {}", e))
-        })?;
+        tx.commit()
+            .map_err(|e| LoreError::Database(format!("Failed to commit transaction: {}", e)))?;
 
         debug!("Stored commit: {}", doc.short_hash);
         Ok(())
@@ -401,9 +391,8 @@ impl IndexStore {
 
     /// Get the file size of the .db file.
     pub fn get_size_bytes(&self) -> Result<u64, LoreError> {
-        let metadata = std::fs::metadata(&self.path).map_err(|e| {
-            LoreError::Database(format!("Failed to get file metadata: {}", e))
-        })?;
+        let metadata = std::fs::metadata(&self.path)
+            .map_err(|e| LoreError::Database(format!("Failed to get file metadata: {}", e)))?;
         Ok(metadata.len())
     }
 
@@ -415,10 +404,7 @@ impl IndexStore {
 
 /// Convert f32 embedding to bytes for blob storage.
 fn embedding_to_bytes(embedding: &[f32]) -> Vec<u8> {
-    embedding
-        .iter()
-        .flat_map(|f| f.to_le_bytes())
-        .collect()
+    embedding.iter().flat_map(|f| f.to_le_bytes()).collect()
 }
 
 /// Convert bytes back to f32 embedding.

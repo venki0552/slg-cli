@@ -57,14 +57,8 @@ pub fn format_xml(results: &[SearchResult], query: &str, latency_ms: u64) -> Str
             "        <date>{}</date>\n",
             format_timestamp(r.commit.timestamp)
         ));
-        xml.push_str(&format!(
-            "        <intent>{}</intent>\n",
-            r.commit.intent
-        ));
-        xml.push_str(&format!(
-            "        <risk_level>{}</risk_level>\n",
-            risk
-        ));
+        xml.push_str(&format!("        <intent>{}</intent>\n", r.commit.intent));
+        xml.push_str(&format!("        <risk_level>{}</risk_level>\n", risk));
         xml.push_str(&format!(
             "        <injection_flagged>{}</injection_flagged>\n",
             r.commit.injection_flagged

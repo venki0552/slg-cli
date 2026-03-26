@@ -64,13 +64,31 @@ impl CommitIntent {
         // Check prefix patterns with colon
         let colon_prefixes: &[(&[&str], CommitIntent)] = &[
             (&["fix:", "bugfix:", "hotfix:", "patch:"], CommitIntent::Fix),
-            (&["feat:", "feature:", "add:", "new:"], CommitIntent::Feature),
-            (&["refactor:", "cleanup:", "reorganize:"], CommitIntent::Refactor),
-            (&["perf:", "performance:", "optimize:", "speed:"], CommitIntent::Perf),
-            (&["security:", "sec:", "vuln:", "cve:"], CommitIntent::Security),
-            (&["docs:", "doc:", "readme:", "comment:"], CommitIntent::Docs),
+            (
+                &["feat:", "feature:", "add:", "new:"],
+                CommitIntent::Feature,
+            ),
+            (
+                &["refactor:", "cleanup:", "reorganize:"],
+                CommitIntent::Refactor,
+            ),
+            (
+                &["perf:", "performance:", "optimize:", "speed:"],
+                CommitIntent::Perf,
+            ),
+            (
+                &["security:", "sec:", "vuln:", "cve:"],
+                CommitIntent::Security,
+            ),
+            (
+                &["docs:", "doc:", "readme:", "comment:"],
+                CommitIntent::Docs,
+            ),
             (&["test:", "spec:", "coverage:"], CommitIntent::Test),
-            (&["chore:", "build:", "ci:", "deps:", "bump:", "style:"], CommitIntent::Chore),
+            (
+                &["chore:", "build:", "ci:", "deps:", "bump:", "style:"],
+                CommitIntent::Chore,
+            ),
             (&["revert:", "rollback:", "undo:"], CommitIntent::Revert),
         ];
 
@@ -101,9 +119,24 @@ impl CommitIntent {
         // Check word-based patterns (without colon)
         let word_prefixes: &[(&[&str], CommitIntent)] = &[
             (&["fix ", "fixed ", "fixes "], CommitIntent::Fix),
-            (&["add ", "added ", "adds ", "implement ", "implemented "], CommitIntent::Feature),
-            (&["update ", "updated ", "refactor ", "refactored ", "clean up "], CommitIntent::Refactor),
-            (&["remove ", "removed ", "delete ", "deleted "], CommitIntent::Refactor),
+            (
+                &["add ", "added ", "adds ", "implement ", "implemented "],
+                CommitIntent::Feature,
+            ),
+            (
+                &[
+                    "update ",
+                    "updated ",
+                    "refactor ",
+                    "refactored ",
+                    "clean up ",
+                ],
+                CommitIntent::Refactor,
+            ),
+            (
+                &["remove ", "removed ", "delete ", "deleted "],
+                CommitIntent::Refactor,
+            ),
             (&["revert ", "reverted "], CommitIntent::Revert),
         ];
 
@@ -185,17 +218,12 @@ pub struct IndexMetadata {
 }
 
 /// Output format for CLI results.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum OutputFormat {
+    #[default]
     Text,
     Xml,
     Json,
-}
-
-impl Default for OutputFormat {
-    fn default() -> Self {
-        OutputFormat::Text
-    }
 }
 
 impl fmt::Display for OutputFormat {
@@ -215,7 +243,10 @@ impl std::str::FromStr for OutputFormat {
             "text" => Ok(OutputFormat::Text),
             "xml" => Ok(OutputFormat::Xml),
             "json" => Ok(OutputFormat::Json),
-            _ => Err(format!("Unknown output format: '{}'. Use text, xml, or json.", s)),
+            _ => Err(format!(
+                "Unknown output format: '{}'. Use text, xml, or json.",
+                s
+            )),
         }
     }
 }
@@ -256,21 +287,66 @@ mod tests {
 
     #[test]
     fn test_commit_intent_from_message() {
-        assert_eq!(CommitIntent::from_message("fix: resolve crash"), CommitIntent::Fix);
-        assert_eq!(CommitIntent::from_message("feat: add login"), CommitIntent::Feature);
-        assert_eq!(CommitIntent::from_message("feat(auth): add login"), CommitIntent::Feature);
-        assert_eq!(CommitIntent::from_message("refactor: clean up code"), CommitIntent::Refactor);
-        assert_eq!(CommitIntent::from_message("perf: optimize query"), CommitIntent::Perf);
-        assert_eq!(CommitIntent::from_message("security: patch XSS"), CommitIntent::Security);
-        assert_eq!(CommitIntent::from_message("docs: update README"), CommitIntent::Docs);
-        assert_eq!(CommitIntent::from_message("test: add unit tests"), CommitIntent::Test);
-        assert_eq!(CommitIntent::from_message("chore: update deps"), CommitIntent::Chore);
-        assert_eq!(CommitIntent::from_message("revert: undo last change"), CommitIntent::Revert);
-        assert_eq!(CommitIntent::from_message("build: fix CI"), CommitIntent::Chore);
-        assert_eq!(CommitIntent::from_message("ci: add workflow"), CommitIntent::Chore);
-        assert_eq!(CommitIntent::from_message("fix login crash"), CommitIntent::Fix);
-        assert_eq!(CommitIntent::from_message("add new feature"), CommitIntent::Feature);
-        assert_eq!(CommitIntent::from_message("random message"), CommitIntent::Unknown);
+        assert_eq!(
+            CommitIntent::from_message("fix: resolve crash"),
+            CommitIntent::Fix
+        );
+        assert_eq!(
+            CommitIntent::from_message("feat: add login"),
+            CommitIntent::Feature
+        );
+        assert_eq!(
+            CommitIntent::from_message("feat(auth): add login"),
+            CommitIntent::Feature
+        );
+        assert_eq!(
+            CommitIntent::from_message("refactor: clean up code"),
+            CommitIntent::Refactor
+        );
+        assert_eq!(
+            CommitIntent::from_message("perf: optimize query"),
+            CommitIntent::Perf
+        );
+        assert_eq!(
+            CommitIntent::from_message("security: patch XSS"),
+            CommitIntent::Security
+        );
+        assert_eq!(
+            CommitIntent::from_message("docs: update README"),
+            CommitIntent::Docs
+        );
+        assert_eq!(
+            CommitIntent::from_message("test: add unit tests"),
+            CommitIntent::Test
+        );
+        assert_eq!(
+            CommitIntent::from_message("chore: update deps"),
+            CommitIntent::Chore
+        );
+        assert_eq!(
+            CommitIntent::from_message("revert: undo last change"),
+            CommitIntent::Revert
+        );
+        assert_eq!(
+            CommitIntent::from_message("build: fix CI"),
+            CommitIntent::Chore
+        );
+        assert_eq!(
+            CommitIntent::from_message("ci: add workflow"),
+            CommitIntent::Chore
+        );
+        assert_eq!(
+            CommitIntent::from_message("fix login crash"),
+            CommitIntent::Fix
+        );
+        assert_eq!(
+            CommitIntent::from_message("add new feature"),
+            CommitIntent::Feature
+        );
+        assert_eq!(
+            CommitIntent::from_message("random message"),
+            CommitIntent::Unknown
+        );
     }
 
     #[test]

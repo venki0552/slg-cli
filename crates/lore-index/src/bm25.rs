@@ -9,9 +9,9 @@ const B: f32 = 0.75;
 
 /// Stop words to remove during tokenization.
 const STOPWORDS: &[&str] = &[
-    "the", "a", "an", "is", "are", "was", "were", "be", "been", "to", "of",
-    "and", "or", "in", "on", "at", "for", "with", "by", "this", "that", "it",
-    "its", "we", "our", "i", "you", "he", "she",
+    "the", "a", "an", "is", "are", "was", "were", "be", "been", "to", "of", "and", "or", "in",
+    "on", "at", "for", "with", "by", "this", "that", "it", "its", "we", "our", "i", "you", "he",
+    "she",
 ];
 
 /// BM25 lexical search index.
@@ -164,9 +164,8 @@ impl BM25Index {
                 .map_err(|e| LoreError::Database(format!("BM25 search query: {}", e)))?;
 
             for row in rows {
-                let (hash, tf) = row.map_err(|e| {
-                    LoreError::Database(format!("BM25 search row: {}", e))
-                })?;
+                let (hash, tf) =
+                    row.map_err(|e| LoreError::Database(format!("BM25 search row: {}", e)))?;
 
                 // BM25 score component: IDF * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * dl/avgdl))
                 // We use tf directly (already normalized), so dl/avgdl ≈ 1

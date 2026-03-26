@@ -7,10 +7,7 @@ use std::path::{Path, PathBuf};
 pub fn find_git_root(start: &Path) -> Result<PathBuf, LoreError> {
     let mut current = start.to_path_buf();
     if current.is_file() {
-        current = current
-            .parent()
-            .map(|p| p.to_path_buf())
-            .unwrap_or(current);
+        current = current.parent().map(|p| p.to_path_buf()).unwrap_or(current);
     }
 
     loop {
@@ -45,9 +42,9 @@ pub fn get_current_branch(repo_path: &Path) -> Result<String, LoreError> {
     }
 
     // Detached HEAD — return short hash
-    let oid = head.target().ok_or_else(|| {
-        LoreError::Git("HEAD has no target".to_string())
-    })?;
+    let oid = head
+        .target()
+        .ok_or_else(|| LoreError::Git("HEAD has no target".to_string()))?;
     let short = &oid.to_string()[..7];
     Ok(format!("HEAD-DETACHED-{}", short))
 }
@@ -87,16 +84,23 @@ pub fn resolve_ref(repo_path: &Path, refspec: &str) -> Result<String, LoreError>
         .revparse_single(refspec)
         .map_err(|e| LoreError::Git(format!("Failed to resolve ref '{}': {}", refspec, e)))?;
 
-    let commit = obj
-        .peel_to_commit()
-        .map_err(|e| LoreError::Git(format!("Ref '{}' does not point to a commit: {}", refspec, e)))?;
+    let commit = obj.peel_to_commit().map_err(|e| {
+        LoreError::Git(format!(
+            "Ref '{}' does not point to a commit: {}",
+            refspec, e
+        ))
+    })?;
 
     Ok(commit.id().to_string())
 }
 
 /// List commit hashes in the range base..head (exclusive of base, inclusive of head).
 /// Returns commits in reverse chronological order.
-pub fn list_commits_in_range(repo_path: &Path, base: &str, head: &str) -> Result<Vec<String>, LoreError> {
+pub fn list_commits_in_range(
+    repo_path: &Path,
+    base: &str,
+    head: &str,
+) -> Result<Vec<String>, LoreError> {
     let repo = git2::Repository::open(repo_path)
         .map_err(|e| LoreError::Git(format!("Failed to open repo: {}", e)))?;
 
@@ -108,18 +112,16 @@ pub fn list_commits_in_range(repo_path: &Path, base: &str, head: &str) -> Result
     let mut revwalk = repo
         .revwalk()
         .map_err(|e| LoreError::Git(format!("Failed to create revwalk: {}", e)))?;
-    revwalk.push(head_oid).map_err(|e| {
-        LoreError::Git(format!("Failed to push head oid: {}", e))
-    })?;
-    revwalk.hide(base_oid).map_err(|e| {
-        LoreError::Git(format!("Failed to hide base oid: {}", e))
-    })?;
+    revwalk
+        .push(head_oid)
+        .map_err(|e| LoreError::Git(format!("Failed to push head oid: {}", e)))?;
+    revwalk
+        .hide(base_oid)
+        .map_err(|e| LoreError::Git(format!("Failed to hide base oid: {}", e)))?;
 
     let mut commits = Vec::new();
     for oid_result in revwalk {
-        let oid = oid_result.map_err(|e| {
-            LoreError::Git(format!("Revwalk error: {}", e))
-        })?;
+        let oid = oid_result.map_err(|e| LoreError::Git(format!("Revwalk error: {}", e)))?;
         commits.push(oid.to_string());
     }
 

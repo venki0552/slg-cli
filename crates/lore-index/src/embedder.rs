@@ -21,9 +21,8 @@ impl Embedder {
             .with_cache_dir(cache_dir)
             .with_show_download_progress(true);
 
-        let model = TextEmbedding::try_new(options).map_err(|e| {
-            LoreError::Embedding(format!("Failed to load embedding model: {}", e))
-        })?;
+        let model = TextEmbedding::try_new(options)
+            .map_err(|e| LoreError::Embedding(format!("Failed to load embedding model: {}", e)))?;
 
         Ok(Self { model })
     }
@@ -62,9 +61,10 @@ impl Embedder {
             .embed(vec![text], None)
             .map_err(|e| LoreError::Embedding(format!("Embedding failed: {}", e)))?;
 
-        results.into_iter().next().ok_or_else(|| {
-            LoreError::Embedding("No embedding result returned".to_string())
-        })
+        results
+            .into_iter()
+            .next()
+            .ok_or_else(|| LoreError::Embedding("No embedding result returned".to_string()))
     }
 
     /// Get the embedding dimension.
@@ -107,10 +107,7 @@ fn build_commit_text(doc: &CommitDoc) -> String {
         format!("\nSummary: {}", d)
     };
 
-    format!(
-        "{}: {}{}{}{}",
-        intent, doc.message, files, issues, diff
-    )
+    format!("{}: {}{}{}{}", intent, doc.message, files, issues, diff)
 }
 
 #[cfg(test)]

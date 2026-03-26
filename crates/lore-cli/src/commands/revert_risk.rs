@@ -5,7 +5,7 @@ use lore_git::detector;
 use lore_index::embedder::Embedder;
 use lore_index::search::{self, SearchOptions};
 use lore_index::store::IndexStore;
-use lore_output::{text, xml, json as json_fmt};
+use lore_output::{json as json_fmt, text, xml};
 use lore_security::output_guard::OutputGuard;
 use lore_security::paths;
 
@@ -20,7 +20,11 @@ pub struct RevertRiskArgs {
 }
 
 /// Blast radius analysis before reverting a commit.
-pub async fn run(args: RevertRiskArgs, format: OutputFormat, max_tokens: Option<usize>) -> Result<(), LoreError> {
+pub async fn run(
+    args: RevertRiskArgs,
+    format: OutputFormat,
+    max_tokens: Option<usize>,
+) -> Result<(), LoreError> {
     let cwd = std::env::current_dir().map_err(LoreError::Io)?;
     let git_root = detector::find_git_root(&cwd)?;
     let repo_hash = detector::compute_repo_hash(&git_root);
@@ -35,16 +39,21 @@ pub async fn run(args: RevertRiskArgs, format: OutputFormat, max_tokens: Option<
     let embedder = Embedder::new()?;
 
     // BUG-007 fix: resolve ref to hash before looking up in store
-    let resolved_hash = if args.commit.chars().all(|c| c.is_ascii_hexdigit()) && args.commit.len() >= 7 {
-        args.commit.clone()
-    } else {
-        detector::resolve_ref(&git_root, &args.commit)?
-    };
+    let resolved_hash =
+        if args.commit.chars().all(|c| c.is_ascii_hexdigit()) && args.commit.len() >= 7 {
+            args.commit.clone()
+        } else {
+            detector::resolve_ref(&git_root, &args.commit)?
+        };
 
     // Get the commit being analyzed using the resolved hash
     let commit_doc = store.get_commit(&resolved_hash)?;
     let query = match &commit_doc {
-        Some(doc) => format!("revert risk: {} files: {}", doc.message, doc.files_changed.join(" ")),
+        Some(doc) => format!(
+            "revert risk: {} files: {}",
+            doc.message,
+            doc.files_changed.join(" ")
+        ),
         None => format!("revert {}", resolved_hash),
     };
 

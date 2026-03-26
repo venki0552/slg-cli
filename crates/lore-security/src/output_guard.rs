@@ -53,7 +53,10 @@ impl OutputGuard {
             }
         }
         if found_injection {
-            self.log_security_event("output_injection_detected", "Injection pattern found in final output");
+            self.log_security_event(
+                "output_injection_detected",
+                "Injection pattern found in final output",
+            );
         }
 
         // Step 3: Check for unescaped XML structure-breaking content
@@ -63,7 +66,10 @@ impl OutputGuard {
         if result.contains("</lore_retrieval>") {
             let count = result.matches("</lore_retrieval>").count();
             if count > 1 {
-                self.log_security_event("xml_structure_risk", "Multiple </lore_retrieval> tags found");
+                self.log_security_event(
+                    "xml_structure_risk",
+                    "Multiple </lore_retrieval> tags found",
+                );
             }
         }
 

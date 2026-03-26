@@ -59,7 +59,11 @@ pub async fn run(args: ReindexArgs) -> Result<(), LoreError> {
     }
 
     if !args.silent {
-        eprintln!("Reindexing {} new commits on '{}'...", new_commits.len(), branch);
+        eprintln!(
+            "Reindexing {} new commits on '{}'...",
+            new_commits.len(),
+            branch
+        );
     }
 
     // new_commits is Vec<String> of commit hashes — we need to build CommitDoc for each
@@ -74,7 +78,8 @@ pub async fn run(args: ReindexArgs) -> Result<(), LoreError> {
 
         let oid = git2::Oid::from_str(hash)
             .map_err(|e| LoreError::Git(format!("Invalid hash: {}", e)))?;
-        let commit = repo.find_commit(oid)
+        let commit = repo
+            .find_commit(oid)
             .map_err(|e| LoreError::Git(format!("Commit not found: {}", e)))?;
         let raw_doc = lore_git::ingestion::build_raw_commit_doc(&repo, &commit, &branch)?;
         let mut doc = sanitizer.sanitize(raw_doc);
@@ -97,7 +102,12 @@ pub async fn run(args: ReindexArgs) -> Result<(), LoreError> {
         eprintln!("Reindexed {} commits.", indexed);
     }
 
-    info!("Delta reindex: {} commits for {}/{}", indexed, &repo_hash[..8], branch);
+    info!(
+        "Delta reindex: {} commits for {}/{}",
+        indexed,
+        &repo_hash[..8],
+        branch
+    );
 
     Ok(())
 }

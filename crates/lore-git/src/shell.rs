@@ -30,10 +30,8 @@ pub fn detect_shell() -> Shell {
     }
 
     // On Windows, check for PowerShell
-    if cfg!(windows) {
-        if std::env::var("PSModulePath").is_ok() {
-            return Shell::PowerShell;
-        }
+    if cfg!(windows) && std::env::var("PSModulePath").is_ok() {
+        return Shell::PowerShell;
     }
 
     Shell::Unknown
@@ -60,7 +58,10 @@ pub fn shell_rc_path(shell: &Shell) -> Option<PathBuf> {
             if let Ok(profile) = std::env::var("PROFILE") {
                 Some(PathBuf::from(profile))
             } else {
-                let docs = home.join("Documents").join("PowerShell").join("Microsoft.PowerShell_profile.ps1");
+                let docs = home
+                    .join("Documents")
+                    .join("PowerShell")
+                    .join("Microsoft.PowerShell_profile.ps1");
                 Some(docs)
             }
         }
@@ -70,9 +71,8 @@ pub fn shell_rc_path(shell: &Shell) -> Option<PathBuf> {
 
 /// Install shell integration. Returns true if installed, false if already present.
 pub fn install_shell_integration(shell: &Shell) -> Result<bool, LoreError> {
-    let rc_path = shell_rc_path(shell).ok_or_else(|| {
-        LoreError::Config("Could not determine shell RC file path".to_string())
-    })?;
+    let rc_path = shell_rc_path(shell)
+        .ok_or_else(|| LoreError::Config("Could not determine shell RC file path".to_string()))?;
 
     // Check if already installed
     if rc_path.exists() {
@@ -97,9 +97,8 @@ pub fn install_shell_integration(shell: &Shell) -> Result<bool, LoreError> {
     };
 
     let new_content = format!("{}\n\n{}\n", existing.trim_end(), block);
-    std::fs::write(&rc_path, new_content).map_err(|e| {
-        LoreError::Git(format!("Failed to write shell RC: {}", e))
-    })?;
+    std::fs::write(&rc_path, new_content)
+        .map_err(|e| LoreError::Git(format!("Failed to write shell RC: {}", e)))?;
 
     debug!("Installed shell integration in {:?}", rc_path);
     Ok(true)

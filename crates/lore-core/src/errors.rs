@@ -22,7 +22,9 @@ pub enum LoreError {
     #[error("Embedding model not found. Run 'lore init' to download it.")]
     ModelNotFound,
 
-    #[error("Model checksum verification failed. Delete ~/.lore/models/ and run 'lore init' again.")]
+    #[error(
+        "Model checksum verification failed. Delete ~/.lore/models/ and run 'lore init' again."
+    )]
     ModelChecksumFailed,
 
     #[error("MCP rate limit exceeded. Please wait before retrying.")]

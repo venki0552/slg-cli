@@ -78,10 +78,8 @@ pub async fn search(
         .iter()
         .map(|(h, s)| (h.as_str(), *s))
         .collect();
-    let bm25_scores: HashMap<&str, f32> = bm25_results
-        .iter()
-        .map(|(h, s)| (h.as_str(), *s))
-        .collect();
+    let bm25_scores: HashMap<&str, f32> =
+        bm25_results.iter().map(|(h, s)| (h.as_str(), *s)).collect();
 
     // 6–8. Fetch docs, apply filters and boosts
     let now = chrono::Utc::now().timestamp();
@@ -120,7 +118,11 @@ pub async fn search(
             }
         }
         if let Some(ref module) = options.module {
-            if !doc.files_changed.iter().any(|f| f.starts_with(module.as_str())) {
+            if !doc
+                .files_changed
+                .iter()
+                .any(|f| f.starts_with(module.as_str()))
+            {
                 continue;
             }
         }
@@ -217,10 +219,7 @@ pub fn rrf_fusion(
 
 /// Apply token budget: include results in rank order until budget exhausted.
 /// Always includes at least 1 result.
-fn apply_token_budget(
-    results: Vec<SearchResult>,
-    max_tokens: usize,
-) -> Vec<SearchResult> {
+fn apply_token_budget(results: Vec<SearchResult>, max_tokens: usize) -> Vec<SearchResult> {
     if results.is_empty() {
         return results;
     }

@@ -6,7 +6,11 @@ use lore_core::types::OutputFormat;
 use tracing_subscriber::EnvFilter;
 
 #[derive(Parser)]
-#[command(name = "lore", version, about = "Semantic git intelligence for LLM agents")]
+#[command(
+    name = "lore",
+    version,
+    about = "Semantic git intelligence for LLM agents"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -119,8 +123,7 @@ async fn main() {
     // Initialize tracing from LORE_LOG env var
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::try_from_env("LORE_LOG")
-                .unwrap_or_else(|_| EnvFilter::new("warn")),
+            EnvFilter::try_from_env("LORE_LOG").unwrap_or_else(|_| EnvFilter::new("warn")),
         )
         .with_writer(std::io::stderr)
         .init();
@@ -137,7 +140,9 @@ async fn main() {
         Commands::Bisect(args) => commands::bisect::run(args, format, cli.max_tokens).await,
         Commands::Log(args) => commands::log::run(args, format, cli.max_tokens).await,
         Commands::Diff(args) => commands::diff::run(args, format, cli.max_tokens).await,
-        Commands::RevertRisk(args) => commands::revert_risk::run(args, format, cli.max_tokens).await,
+        Commands::RevertRisk(args) => {
+            commands::revert_risk::run(args, format, cli.max_tokens).await
+        }
         Commands::Status => commands::status::run(format).await,
         Commands::Cleanup(args) => commands::cleanup::run(args).await,
         Commands::Doctor { fix_all } => commands::doctor::run(fix_all).await,
@@ -168,7 +173,9 @@ async fn run_health() -> Result<(), LoreError> {
             let repo_hash = lore_git::detector::compute_repo_hash(&root);
             let index_path = lore_security::paths::safe_index_path(&repo_hash, &branch)?;
             let (indexed, size_kb) = if index_path.exists() {
-                let size = std::fs::metadata(&index_path).map(|m| m.len() / 1024).unwrap_or(0);
+                let size = std::fs::metadata(&index_path)
+                    .map(|m| m.len() / 1024)
+                    .unwrap_or(0);
                 (true, size)
             } else {
                 (false, 0)
@@ -204,8 +211,8 @@ async fn run_index_commit(hash: &str) -> Result<(), LoreError> {
     let cwd = std::env::current_dir().map_err(LoreError::Io)?;
     let git_root = lore_git::detector::find_git_root(&cwd)?;
     let repo_hash = lore_git::detector::compute_repo_hash(&git_root);
-    let branch = lore_git::detector::get_current_branch(&git_root)
-        .unwrap_or_else(|_| "main".to_string());
+    let branch =
+        lore_git::detector::get_current_branch(&git_root).unwrap_or_else(|_| "main".to_string());
     let index_path = lore_security::paths::safe_index_path(&repo_hash, &branch)?;
 
     if !index_path.exists() {
@@ -218,13 +225,13 @@ async fn run_index_commit(hash: &str) -> Result<(), LoreError> {
         return Ok(()); // Already indexed
     }
 
-    let repo = git2::Repository::open(&git_root)
-        .map_err(|e| LoreError::Git(e.to_string()))?;
+    let repo = git2::Repository::open(&git_root).map_err(|e| LoreError::Git(e.to_string()))?;
 
-    let oid = git2::Oid::from_str(hash)
-        .map_err(|e| LoreError::Git(format!("Invalid hash: {}", e)))?;
+    let oid =
+        git2::Oid::from_str(hash).map_err(|e| LoreError::Git(format!("Invalid hash: {}", e)))?;
 
-    let commit = repo.find_commit(oid)
+    let commit = repo
+        .find_commit(oid)
         .map_err(|e| LoreError::Git(format!("Commit not found: {}", e)))?;
 
     let doc = lore_git::ingestion::build_raw_commit_doc(&repo, &commit, &branch)?;
@@ -243,8 +250,8 @@ fn run_index_path() -> Result<(), LoreError> {
     let cwd = std::env::current_dir().map_err(LoreError::Io)?;
     let git_root = lore_git::detector::find_git_root(&cwd)?;
     let repo_hash = lore_git::detector::compute_repo_hash(&git_root);
-    let branch = lore_git::detector::get_current_branch(&git_root)
-        .unwrap_or_else(|_| "main".to_string());
+    let branch =
+        lore_git::detector::get_current_branch(&git_root).unwrap_or_else(|_| "main".to_string());
     let index_path = lore_security::paths::safe_index_path(&repo_hash, &branch)?;
     println!("{}", index_path.display());
     Ok(())

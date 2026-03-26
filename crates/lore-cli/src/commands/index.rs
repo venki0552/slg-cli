@@ -108,13 +108,22 @@ pub async fn run(args: IndexArgs) -> Result<(), LoreError> {
     }
 
     // Update metadata
-    store.update_metadata(&repo_hash, &branch, &detector::detect_base_branch(&git_root))?;
+    store.update_metadata(
+        &repo_hash,
+        &branch,
+        &detector::detect_base_branch(&git_root),
+    )?;
 
     if !args.silent {
         eprintln!("Index stored at: {}", index_path.display());
     }
 
-    info!("Indexed {} commits for {}/{}", indexed, &repo_hash[..8], branch);
+    info!(
+        "Indexed {} commits for {}/{}",
+        indexed,
+        &repo_hash[..8],
+        branch
+    );
 
     Ok(())
 }

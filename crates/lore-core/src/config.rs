@@ -63,14 +63,30 @@ pub enum LlmProvider {
     None,
 }
 
-fn default_cleanup_days() -> u64 { 7 }
-fn default_max_response_tokens() -> usize { 4096 }
-fn default_result_limit() -> u32 { 3 }
-fn default_embedding_model() -> String { "all-MiniLM-L6-v2".to_string() }
-fn default_mcp_rate_limit() -> u32 { 60 }
-fn default_mcp_output_max() -> usize { 50_000 }
-fn default_mcp_timeout() -> u64 { 5 }
-fn default_llm_timeout() -> u64 { 30 }
+fn default_cleanup_days() -> u64 {
+    7
+}
+fn default_max_response_tokens() -> usize {
+    4096
+}
+fn default_result_limit() -> u32 {
+    3
+}
+fn default_embedding_model() -> String {
+    "all-MiniLM-L6-v2".to_string()
+}
+fn default_mcp_rate_limit() -> u32 {
+    60
+}
+fn default_mcp_output_max() -> usize {
+    50_000
+}
+fn default_mcp_timeout() -> u64 {
+    5
+}
+fn default_llm_timeout() -> u64 {
+    30
+}
 
 impl Default for LoreConfig {
     fn default() -> Self {
@@ -97,8 +113,7 @@ impl LoreConfig {
         let path = Self::config_path();
         if path.exists() {
             let content = std::fs::read_to_string(&path)?;
-            let config: LoreConfig = toml::from_str(&content)
-                .unwrap_or_default();
+            let config: LoreConfig = toml::from_str(&content).unwrap_or_default();
             Ok(config)
         } else {
             Ok(Self::default())

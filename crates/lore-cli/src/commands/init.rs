@@ -39,9 +39,8 @@ pub struct InitArgs {
 /// Initialize lore for this repository: index + hooks + MCP registration.
 pub async fn run(args: InitArgs) -> Result<(), LoreError> {
     // 1. Find git root
-    let git_root = detector::find_git_root(&std::env::current_dir().map_err(|e| {
-        LoreError::Io(e)
-    })?)?;
+    let git_root =
+        detector::find_git_root(&std::env::current_dir().map_err(|e| LoreError::Io(e))?)?;
 
     if !args.silent {
         println!("{}", "lore init".bold());
@@ -57,9 +56,7 @@ pub async fn run(args: InitArgs) -> Result<(), LoreError> {
 
     // 3. Ensure ~/.lore/ directory exists
     let lore_home = paths::lore_home();
-    std::fs::create_dir_all(&lore_home).map_err(|e| {
-        LoreError::Io(e)
-    })?;
+    std::fs::create_dir_all(&lore_home).map_err(|e| LoreError::Io(e))?;
 
     if !args.silent {
         println!("{} Created {}", "✓".green(), lore_home.display());
@@ -84,11 +81,7 @@ pub async fn run(args: InitArgs) -> Result<(), LoreError> {
             }
             Err(e) => {
                 if !args.silent {
-                    println!(
-                        "{} Shell integration: {}",
-                        "⚠".yellow(),
-                        e
-                    );
+                    println!("{} Shell integration: {}", "⚠".yellow(), e);
                 }
             }
         }

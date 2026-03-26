@@ -23,13 +23,25 @@ const SECRET_PATTERNS: &[(&str, &str)] = &[
     // Twilio account SID
     (r"AC[a-z0-9]{32}", "[REDACTED-TWILIO]"),
     // Private key block
-    (r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----", "[REDACTED-PRIVATE-KEY]"),
+    (
+        r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----",
+        "[REDACTED-PRIVATE-KEY]",
+    ),
     // JWT token
-    (r"eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}", "[REDACTED-JWT]"),
+    (
+        r"eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}",
+        "[REDACTED-JWT]",
+    ),
     // Database URL with credentials
-    (r"(?:postgres|mysql|mongodb|redis)://[^\s:]+:[^\s@]+@", "[REDACTED-DB-URL]://"),
+    (
+        r"(?:postgres|mysql|mongodb|redis)://[^\s:]+:[^\s@]+@",
+        "[REDACTED-DB-URL]://",
+    ),
     // Generic credential patterns (case-insensitive)
-    (r"(?i)(?:api[_-]?key|secret|password|passwd|token|auth|credential)\s*[:=]\s*['\x22]?([a-zA-Z0-9_\-\.+/=]{8,})", "[REDACTED-GENERIC]"),
+    (
+        r"(?i)(?:api[_-]?key|secret|password|passwd|token|auth|credential)\s*[:=]\s*['\x22]?([a-zA-Z0-9_\-\.+/=]{8,})",
+        "[REDACTED-GENERIC]",
+    ),
 ];
 
 /// Detects and redacts secrets from text before storage.
@@ -43,9 +55,7 @@ impl SecretRedactor {
         let patterns = SECRET_PATTERNS
             .iter()
             .filter_map(|(pattern, replacement)| {
-                Regex::new(pattern)
-                    .ok()
-                    .map(|re| (re, *replacement))
+                Regex::new(pattern).ok().map(|re| (re, *replacement))
             })
             .collect();
 
@@ -124,7 +134,8 @@ mod tests {
     #[test]
     fn test_private_key_redacted() {
         let redactor = SecretRedactor::new();
-        let text = "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----";
+        let text =
+            "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----";
         let (result, count) = redactor.redact(text);
         assert!(!result.contains("BEGIN RSA PRIVATE KEY"));
         assert!(result.contains("[REDACTED-PRIVATE-KEY]"));

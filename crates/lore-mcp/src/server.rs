@@ -30,10 +30,7 @@ pub async fn run_mcp_server() -> Result<(), LoreError> {
     let mut line = String::new();
     loop {
         line.clear();
-        let bytes_read = reader
-            .read_line(&mut line)
-            .await
-            .map_err(|e| LoreError::Io(e))?;
+        let bytes_read = reader.read_line(&mut line).await.map_err(LoreError::Io)?;
 
         if bytes_read == 0 {
             debug!("stdin closed, shutting down");
@@ -55,15 +52,12 @@ pub async fn run_mcp_server() -> Result<(), LoreError> {
         };
 
         let id = request.get("id").cloned();
-        let method = request
-            .get("method")
-            .and_then(|m| m.as_str())
-            .unwrap_or("");
+        let method = request.get("method").and_then(|m| m.as_str()).unwrap_or("");
 
         debug!("Received method: {}", method);
 
         // Rate limit check
-        if let Err(_) = limiter.check() {
+        if limiter.check().is_err() {
             let resp = json_rpc_error(id, -32000, "Rate limit exceeded (60 req/min)");
             write_response(&mut stdout, &resp).await?;
             continue;
@@ -94,12 +88,9 @@ pub async fn run_mcp_server() -> Result<(), LoreError> {
         stdout
             .write_all(capped.as_bytes())
             .await
-            .map_err(|e| LoreError::Io(e))?;
-        stdout
-            .write_all(b"\n")
-            .await
-            .map_err(|e| LoreError::Io(e))?;
-        stdout.flush().await.map_err(|e| LoreError::Io(e))?;
+            .map_err(LoreError::Io)?;
+        stdout.write_all(b"\n").await.map_err(LoreError::Io)?;
+        stdout.flush().await.map_err(LoreError::Io)?;
     }
 
     Ok(())
@@ -120,18 +111,12 @@ async fn handle_method(method: &str, request: &Value) -> Result<Value, LoreError
         "tools/list" => Ok(tools::tools_list_response()),
         "tools/call" => {
             let params = request.get("params").cloned().unwrap_or(json!({}));
-            let tool_name = params
-                .get("name")
-                .and_then(|n| n.as_str())
-                .unwrap_or("");
+            let tool_name = params.get("name").and_then(|n| n.as_str()).unwrap_or("");
 
             handle_tool_call(tool_name, &params).await
         }
         "notifications/initialized" => Ok(json!({})),
-        _ => Err(LoreError::Config(format!(
-            "Unknown method: {}",
-            method
-        ))),
+        _ => Err(LoreError::Config(format!("Unknown method: {}", method))),
     }
 }
 
@@ -169,16 +154,26 @@ async fn handle_tool_call(tool_name: &str, params: &Value) -> Result<Value, Lore
 
     match tool_name {
         "lore_why" => {
-            let query = arguments.get("query").and_then(|q| q.as_str()).unwrap_or("");
+            let query = arguments
+                .get("query")
+                .and_then(|q| q.as_str())
+                .unwrap_or("");
             if query.is_empty() {
-                return Ok(json!({"content": [{"type": "text", "text": "Error: query is required"}], "isError": true}));
+                return Ok(
+                    json!({"content": [{"type": "text", "text": "Error: query is required"}], "isError": true}),
+                );
             }
             if query.len() > 500 {
-                return Ok(json!({"content": [{"type": "text", "text": "Error: query too long (max 500 chars)"}], "isError": true}));
+                return Ok(
+                    json!({"content": [{"type": "text", "text": "Error: query too long (max 500 chars)"}], "isError": true}),
+                );
             }
 
             let limit = arguments.get("limit").and_then(|l| l.as_u64()).unwrap_or(3) as u32;
-            let max_tokens = arguments.get("max_tokens").and_then(|t| t.as_u64()).unwrap_or(4096) as usize;
+            let max_tokens = arguments
+                .get("max_tokens")
+                .and_then(|t| t.as_u64())
+                .unwrap_or(4096) as usize;
             let fmt = match arguments.get("format").and_then(|f| f.as_str()) {
                 Some("json") => OutputFormat::Json,
                 _ => OutputFormat::Xml,
@@ -189,7 +184,10 @@ async fn handle_tool_call(tool_name: &str, params: &Value) -> Result<Value, Lore
                 limit: limit.min(10),
                 since: None,
                 until: None,
-                author: arguments.get("author").and_then(|a| a.as_str()).map(|s| s.to_string()),
+                author: arguments
+                    .get("author")
+                    .and_then(|a| a.as_str())
+                    .map(|s| s.to_string()),
                 module: None,
                 max_tokens,
                 enable_reranker: false,
@@ -213,7 +211,9 @@ async fn handle_tool_call(tool_name: &str, params: &Value) -> Result<Value, Lore
         "lore_blame" => {
             let file = arguments.get("file").and_then(|f| f.as_str()).unwrap_or("");
             if file.is_empty() {
-                return Ok(json!({"content": [{"type": "text", "text": "Error: file is required"}], "isError": true}));
+                return Ok(
+                    json!({"content": [{"type": "text", "text": "Error: file is required"}], "isError": true}),
+                );
             }
 
             let query = format!("changes to file {}", file);
@@ -240,9 +240,14 @@ async fn handle_tool_call(tool_name: &str, params: &Value) -> Result<Value, Lore
             Ok(json!({"content": [{"type": "text", "text": safe}]}))
         }
         "lore_log" => {
-            let query = arguments.get("query").and_then(|q| q.as_str()).unwrap_or("");
+            let query = arguments
+                .get("query")
+                .and_then(|q| q.as_str())
+                .unwrap_or("");
             if query.is_empty() {
-                return Ok(json!({"content": [{"type": "text", "text": "Error: query is required"}], "isError": true}));
+                return Ok(
+                    json!({"content": [{"type": "text", "text": "Error: query is required"}], "isError": true}),
+                );
             }
 
             let embedder = Embedder::new()?;
@@ -268,9 +273,14 @@ async fn handle_tool_call(tool_name: &str, params: &Value) -> Result<Value, Lore
             Ok(json!({"content": [{"type": "text", "text": safe}]}))
         }
         "lore_bisect" => {
-            let desc = arguments.get("bug_description").and_then(|d| d.as_str()).unwrap_or("");
+            let desc = arguments
+                .get("bug_description")
+                .and_then(|d| d.as_str())
+                .unwrap_or("");
             if desc.is_empty() {
-                return Ok(json!({"content": [{"type": "text", "text": "Error: bug_description is required"}], "isError": true}));
+                return Ok(
+                    json!({"content": [{"type": "text", "text": "Error: bug_description is required"}], "isError": true}),
+                );
             }
 
             let query = format!("bug: {}", desc);
@@ -313,7 +323,9 @@ async fn handle_tool_call(tool_name: &str, params: &Value) -> Result<Value, Lore
                 "index_version": meta.index_version,
             });
 
-            Ok(json!({"content": [{"type": "text", "text": serde_json::to_string_pretty(&status).unwrap_or_default()}]}))
+            Ok(
+                json!({"content": [{"type": "text", "text": serde_json::to_string_pretty(&status).unwrap_or_default()}]}),
+            )
         }
         _ => Ok(json!({
             "content": [{"type": "text", "text": format!("Unknown tool: {}", tool_name)}],
@@ -341,20 +353,14 @@ fn json_rpc_error(id: Option<Value>, code: i32, message: &str) -> Value {
     })
 }
 
-async fn write_response(
-    stdout: &mut tokio::io::Stdout,
-    response: &Value,
-) -> Result<(), LoreError> {
+async fn write_response(stdout: &mut tokio::io::Stdout, response: &Value) -> Result<(), LoreError> {
     let s = serde_json::to_string(response).unwrap_or_default();
     stdout
         .write_all(s.as_bytes())
         .await
-        .map_err(|e| LoreError::Io(e))?;
-    stdout
-        .write_all(b"\n")
-        .await
-        .map_err(|e| LoreError::Io(e))?;
-    stdout.flush().await.map_err(|e| LoreError::Io(e))?;
+        .map_err(LoreError::Io)?;
+    stdout.write_all(b"\n").await.map_err(LoreError::Io)?;
+    stdout.flush().await.map_err(LoreError::Io)?;
     Ok(())
 }
 

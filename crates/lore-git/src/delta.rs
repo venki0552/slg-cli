@@ -35,18 +35,16 @@ pub fn get_delta_commits(
     let mut revwalk = repo
         .revwalk()
         .map_err(|e| LoreError::Git(format!("Failed to create revwalk: {}", e)))?;
-    revwalk.push(feature_oid).map_err(|e| {
-        LoreError::Git(format!("Failed to push feature oid: {}", e))
-    })?;
-    revwalk.hide(merge_base).map_err(|e| {
-        LoreError::Git(format!("Failed to hide merge base: {}", e))
-    })?;
+    revwalk
+        .push(feature_oid)
+        .map_err(|e| LoreError::Git(format!("Failed to push feature oid: {}", e)))?;
+    revwalk
+        .hide(merge_base)
+        .map_err(|e| LoreError::Git(format!("Failed to hide merge base: {}", e)))?;
 
     let mut commits = Vec::new();
     for oid_result in revwalk {
-        let oid = oid_result.map_err(|e| {
-            LoreError::Git(format!("Revwalk error: {}", e))
-        })?;
+        let oid = oid_result.map_err(|e| LoreError::Git(format!("Revwalk error: {}", e)))?;
         commits.push(oid.to_string());
     }
 
@@ -110,10 +108,7 @@ mod tests {
     fn test_delta_commits() {
         let (_dir, repo) = create_repo_with_branches();
         // Determine base branch name
-        let base = if repo
-            .find_reference("refs/heads/main")
-            .is_ok()
-        {
+        let base = if repo.find_reference("refs/heads/main").is_ok() {
             "main"
         } else {
             "master"

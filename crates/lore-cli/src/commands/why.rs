@@ -42,14 +42,18 @@ pub struct WhyArgs {
 }
 
 /// Semantic search over git history.
-pub async fn run(args: WhyArgs, format: OutputFormat, global_max_tokens: Option<usize>) -> Result<(), LoreError> {
+pub async fn run(
+    args: WhyArgs,
+    format: OutputFormat,
+    global_max_tokens: Option<usize>,
+) -> Result<(), LoreError> {
     // Validate query
     if args.query.len() > 500 {
         return Err(LoreError::QueryTooLong);
     }
 
     // Find repo
-    let cwd = std::env::current_dir().map_err(|e| LoreError::Io(e))?;
+    let cwd = std::env::current_dir().map_err(LoreError::Io)?;
     let git_root = detector::find_git_root(&cwd)?;
 
     let repo_hash = detector::compute_repo_hash(&git_root);
@@ -72,10 +76,7 @@ pub async fn run(args: WhyArgs, format: OutputFormat, global_max_tokens: Option<
             .map(|dt| dt.and_utc().timestamp())
     });
 
-    let max_tokens = args
-        .max_tokens
-        .or(global_max_tokens)
-        .unwrap_or(4096);
+    let max_tokens = args.max_tokens.or(global_max_tokens).unwrap_or(4096);
 
     let options = SearchOptions {
         limit: args.limit,

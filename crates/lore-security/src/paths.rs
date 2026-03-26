@@ -34,7 +34,7 @@ fn sanitize_branch_name(branch: &str) -> String {
 
     // Step 4: Reject names starting with "-"
     if sanitized.starts_with('-') {
-        return format!("b_{}", &sanitized[1..]);
+        return format!("b_{}", sanitized.strip_prefix('-').unwrap_or(&sanitized));
     }
 
     sanitized

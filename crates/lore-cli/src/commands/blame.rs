@@ -25,7 +25,11 @@ pub struct BlameArgs {
 }
 
 /// Semantic blame: find who understands a file and why.
-pub async fn run(args: BlameArgs, format: OutputFormat, max_tokens: Option<usize>) -> Result<(), LoreError> {
+pub async fn run(
+    args: BlameArgs,
+    format: OutputFormat,
+    max_tokens: Option<usize>,
+) -> Result<(), LoreError> {
     let cwd = std::env::current_dir().map_err(LoreError::Io)?;
     let git_root = detector::find_git_root(&cwd)?;
     let repo_hash = detector::compute_repo_hash(&git_root);

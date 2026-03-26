@@ -39,7 +39,8 @@ fn anthropic_key_never_stored() {
 #[test]
 fn private_key_never_stored() {
     let redactor = SecretRedactor::new();
-    let text = "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----";
+    let text =
+        "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----";
     let (result, count) = redactor.redact(text);
 
     assert!(!result.contains("BEGIN RSA PRIVATE KEY"));
@@ -53,7 +54,11 @@ fn secrets_redacted_count_is_accurate() {
     let text = "key1=AKIAIOSFODNN7EXAMPLE1 key2=ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij key3=sk-abcdefghijklmnopqrstuvwxyz1234567890ab";
     let (result, count) = redactor.redact(text);
 
-    assert!(count >= 3, "Expected at least 3 secrets redacted, got {}", count);
+    assert!(
+        count >= 3,
+        "Expected at least 3 secrets redacted, got {}",
+        count
+    );
     assert!(!result.contains("AKIAIOSFODNN7EXAMPLE1"));
     assert!(!result.contains("ghp_"));
 }

@@ -13,18 +13,18 @@ pub async fn run(fix_all: bool) -> Result<(), LoreError> {
 
     // 1. Check binary version
     let version = env!("CARGO_PKG_VERSION");
-    println!(
-        "{} lore version: {}",
-        "✓".green(),
-        version
-    );
+    println!("{} lore version: {}", "✓".green(), version);
 
     // 2. Check lore home directory
     let lore_home = paths::lore_home();
     if lore_home.exists() {
         println!("{} lore home: {}", "✓".green(), lore_home.display());
     } else {
-        println!("{} lore home: {} (not found)", "✗".red(), lore_home.display());
+        println!(
+            "{} lore home: {} (not found)",
+            "✗".red(),
+            lore_home.display()
+        );
         issues += 1;
     }
 
@@ -38,14 +38,10 @@ pub async fn run(fix_all: bool) -> Result<(), LoreError> {
     }
 
     // 4. Check git repo
-    let cwd = std::env::current_dir().map_err(|e| LoreError::Io(e))?;
+    let cwd = std::env::current_dir().map_err(LoreError::Io)?;
     match detector::find_git_root(&cwd) {
         Ok(git_root) => {
-            println!(
-                "{} Git repo: {}",
-                "✓".green(),
-                git_root.display()
-            );
+            println!("{} Git repo: {}", "✓".green(), git_root.display());
 
             // 5. Check hooks
             if hooks::hooks_installed(&git_root) {
@@ -67,16 +63,9 @@ pub async fn run(fix_all: bool) -> Result<(), LoreError> {
             match paths::safe_index_path(&repo_hash, &branch) {
                 Ok(index_path) => {
                     if index_path.exists() {
-                        println!(
-                            "{} Index exists: {}",
-                            "✓".green(),
-                            index_path.display()
-                        );
+                        println!("{} Index exists: {}", "✓".green(), index_path.display());
                     } else {
-                        println!(
-                            "{} No index (run `lore init`)",
-                            "⚠".yellow()
-                        );
+                        println!("{} No index (run `lore init`)", "⚠".yellow());
                         issues += 1;
                     }
                 }

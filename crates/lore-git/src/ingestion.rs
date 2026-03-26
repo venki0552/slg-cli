@@ -30,23 +30,21 @@ pub async fn index_full_branch(
     let mut revwalk = repo
         .revwalk()
         .map_err(|e| LoreError::Git(format!("Failed to create revwalk: {}", e)))?;
-    revwalk.push(oid).map_err(|e| {
-        LoreError::Git(format!("Failed to push oid to revwalk: {}", e))
-    })?;
-    revwalk.set_sorting(Sort::TIME | Sort::TOPOLOGICAL).map_err(|e| {
-        LoreError::Git(format!("Failed to set sorting: {}", e))
-    })?;
+    revwalk
+        .push(oid)
+        .map_err(|e| LoreError::Git(format!("Failed to push oid to revwalk: {}", e)))?;
+    revwalk
+        .set_sorting(Sort::TIME | Sort::TOPOLOGICAL)
+        .map_err(|e| LoreError::Git(format!("Failed to set sorting: {}", e)))?;
 
     let mut count: u64 = 0;
 
     for oid_result in revwalk {
-        let oid = oid_result.map_err(|e| {
-            LoreError::Git(format!("Revwalk error: {}", e))
-        })?;
+        let oid = oid_result.map_err(|e| LoreError::Git(format!("Revwalk error: {}", e)))?;
 
-        let commit = repo.find_commit(oid).map_err(|e| {
-            LoreError::Git(format!("Failed to find commit {}: {}", oid, e))
-        })?;
+        let commit = repo
+            .find_commit(oid)
+            .map_err(|e| LoreError::Git(format!("Failed to find commit {}: {}", oid, e)))?;
 
         if skip_binary_commit(&repo, &commit) {
             continue;
@@ -92,20 +90,17 @@ pub fn build_raw_commit_doc(
     let short_hash = hash[..7.min(hash.len())].to_string();
     let message = commit.summary().unwrap_or("").to_string();
     let body = commit.body().map(|s| s.to_string());
-    let author = commit
-        .author()
-        .name()
-        .unwrap_or("unknown")
-        .to_string();
+    let author = commit.author().name().unwrap_or("unknown").to_string();
     let timestamp = commit.time().seconds();
     let full_message = format!(
         "{}{}",
         message,
-        body.as_deref().map(|b| format!("\n{}", b)).unwrap_or_default()
+        body.as_deref()
+            .map(|b| format!("\n{}", b))
+            .unwrap_or_default()
     );
 
-    let (files_changed, insertions, deletions, diff_summary) =
-        build_diff_info(repo, commit)?;
+    let (files_changed, insertions, deletions, diff_summary) = build_diff_info(repo, commit)?;
 
     let linked_issues = parse_issue_refs(&full_message);
     let linked_prs = parse_pr_refs(&full_message);
@@ -138,15 +133,12 @@ fn build_diff_info(
     repo: &Repository,
     commit: &Commit,
 ) -> Result<(Vec<String>, u32, u32, String), LoreError> {
-    let tree = commit.tree().map_err(|e| {
-        LoreError::Git(format!("Failed to get tree: {}", e))
-    })?;
+    let tree = commit
+        .tree()
+        .map_err(|e| LoreError::Git(format!("Failed to get tree: {}", e)))?;
 
     let parent_tree = if commit.parent_count() > 0 {
-        commit
-            .parent(0)
-            .ok()
-            .and_then(|p| p.tree().ok())
+        commit.parent(0).ok().and_then(|p| p.tree().ok())
     } else {
         None
     };
@@ -158,9 +150,9 @@ fn build_diff_info(
         .diff_tree_to_tree(parent_tree.as_ref(), Some(&tree), Some(&mut opts))
         .map_err(|e| LoreError::Git(format!("Failed to create diff: {}", e)))?;
 
-    let stats = diff.stats().map_err(|e| {
-        LoreError::Git(format!("Failed to get diff stats: {}", e))
-    })?;
+    let stats = diff
+        .stats()
+        .map_err(|e| LoreError::Git(format!("Failed to get diff stats: {}", e)))?;
 
     let insertions = stats.insertions() as u32;
     let deletions = stats.deletions() as u32;
@@ -244,8 +236,7 @@ pub fn parse_issue_refs(text: &str) -> Vec<String> {
 /// Parse PR references from text (GitHub-style).
 fn parse_pr_refs(text: &str) -> Vec<String> {
     // PRs are typically referenced as "PR #123" or "(#123)"
-    let re = Regex::new(r"(?i)(?:PR\s+)?#(\d+)")
-        .unwrap_or_else(|_| Regex::new(r"#(\d+)").unwrap());
+    let re = Regex::new(r"(?i)(?:PR\s+)?#(\d+)").unwrap_or_else(|_| Regex::new(r"#(\d+)").unwrap());
 
     let mut prs: Vec<String> = re
         .captures_iter(text)
@@ -276,15 +267,9 @@ pub fn calculate_risk_score(files: &[String], insertions: u32, deletions: u32) -
             || lower.contains(".env")
         {
             score += 0.2;
-        } else if lower.contains("test/")
-            || lower.contains("spec/")
-            || lower.contains("tests/")
-        {
+        } else if lower.contains("test/") || lower.contains("spec/") || lower.contains("tests/") {
             score -= 0.2;
-        } else if lower.contains("docs/")
-            || lower.contains("readme")
-            || lower.contains("doc/")
-        {
+        } else if lower.contains("docs/") || lower.contains("readme") || lower.contains("doc/") {
             score -= 0.3;
         }
     }

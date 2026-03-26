@@ -19,10 +19,7 @@ pub fn estimate_result_tokens(result: &SearchResult) -> u32 {
 /// Apply token budget: include results in rank order until budget exhausted.
 /// Always includes at least 1 result (even if it exceeds budget).
 /// Updates token_count fields.
-pub fn apply_token_budget(
-    mut results: Vec<SearchResult>,
-    max_tokens: usize,
-) -> Vec<SearchResult> {
+pub fn apply_token_budget(mut results: Vec<SearchResult>, max_tokens: usize) -> Vec<SearchResult> {
     if results.is_empty() {
         return results;
     }
@@ -38,10 +35,7 @@ pub fn apply_token_budget(
     for r in results {
         let tokens = r.token_count as usize;
 
-        if budgeted.is_empty() {
-            total += tokens;
-            budgeted.push(r);
-        } else if total + tokens <= max_tokens {
+        if budgeted.is_empty() || total + tokens <= max_tokens {
             total += tokens;
             budgeted.push(r);
         } else {
@@ -103,7 +97,11 @@ mod tests {
 
     #[test]
     fn test_budget_limits() {
-        let results = vec![make_result(100, 1), make_result(100, 2), make_result(100, 3)];
+        let results = vec![
+            make_result(100, 1),
+            make_result(100, 2),
+            make_result(100, 3),
+        ];
         let budgeted = apply_token_budget(results, 70);
         // Each result ~(100 + 1 + 6)/4 ≈ 27 tokens. Budget 70 → fits 2
         assert_eq!(budgeted.len(), 2);

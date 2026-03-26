@@ -3,7 +3,7 @@ use lore_core::errors::LoreError;
 use lore_core::types::{OutputFormat, SearchResult};
 use lore_git::detector;
 use lore_index::store::IndexStore;
-use lore_output::{text, xml, json as json_fmt};
+use lore_output::{json as json_fmt, text, xml};
 use lore_security::output_guard::OutputGuard;
 use lore_security::paths;
 
@@ -27,7 +27,11 @@ pub struct DiffArgs {
 }
 
 /// Intent-level diff between two refs.
-pub async fn run(args: DiffArgs, format: OutputFormat, _max_tokens: Option<usize>) -> Result<(), LoreError> {
+pub async fn run(
+    args: DiffArgs,
+    format: OutputFormat,
+    _max_tokens: Option<usize>,
+) -> Result<(), LoreError> {
     let cwd = std::env::current_dir().map_err(LoreError::Io)?;
     let git_root = detector::find_git_root(&cwd)?;
     let repo_hash = detector::compute_repo_hash(&git_root);
@@ -48,7 +52,12 @@ pub async fn run(args: DiffArgs, format: OutputFormat, _max_tokens: Option<usize
         let output = match format {
             OutputFormat::Json => json_fmt::format_json(&[], &query, 0),
             OutputFormat::Xml => xml::format_xml(&[], &query, 0),
-            OutputFormat::Text => format!("No changes: {} and {} resolve to the same commit ({})\n", args.base, args.head, &base_hash[..7]),
+            OutputFormat::Text => format!(
+                "No changes: {} and {} resolve to the same commit ({})\n",
+                args.base,
+                args.head,
+                &base_hash[..7]
+            ),
         };
         print!("{}", output);
         return Ok(());
@@ -121,6 +130,9 @@ mod tests {
     fn test_diff_same_refs_detected() {
         let base_hash = "abc123def456abc123def456abc123def456abc1";
         let head_hash = "abc123def456abc123def456abc123def456abc1";
-        assert_eq!(base_hash, head_hash, "Identical hashes should trigger early return");
+        assert_eq!(
+            base_hash, head_hash,
+            "Identical hashes should trigger early return"
+        );
     }
 }
