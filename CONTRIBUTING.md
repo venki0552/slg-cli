@@ -85,6 +85,7 @@ cargo build --release
 ```
 
 The binary ends up at:
+
 - `target/debug/lore` (debug)
 - `target/release/lore` (release)
 - Windows adds `.exe`
@@ -293,6 +294,7 @@ These tests must continue to pass. They are never opt-in — CI runs them as a s
 Types: `fix`, `feat`, `chore`, `docs`, `test`, `refactor`, `perf`, `security`, `ci`, `style`
 
 Examples:
+
 ```
 feat: add --until flag to lore why for date range filtering
 fix: handle empty commit messages without panicking
@@ -307,6 +309,7 @@ test: add invariant test for path traversal with unicode
 If you find a security vulnerability, **do not open a public issue**. Instead, open a [GitHub Security Advisory](https://github.com/venki0552/lore-cli/security/advisories/new) or email the maintainers directly.
 
 Security issues include:
+
 - Any way to make lore write to the git repository
 - Any way to bypass secret redaction before storage
 - Any injection pattern that survives the sanitizer and reaches output
@@ -320,17 +323,20 @@ Security issues include:
 These areas are either stubbed, incomplete, or planned for future phases:
 
 ### LLM Integration (Phase 2)
+
 - `lore commit` — history-aware commit message generation
-- `lore pr` — PR description generation  
+- `lore pr` — PR description generation
 - `lore review` — pre-push review
 - LLM provider auto-detection (Ollama, Claude Code CLI, Anthropic API, OpenAI API, Gemini API, LM Studio)
 - The `lore-llm` crate is scaffolded in the architecture but not yet created
 
 ### Cross-Encoder Reranker
+
 - `--rerank` flag is wired through the CLI but `lore-index/src/reranker.rs` is a stub
 - Needs a DeBERTa or similar cross-encoder model for re-ranking top-k vector results
 
 ### Hardening
+
 - Full benchmark suite with real OSS repos and published recall@k numbers
 - Adversarial test suite with injected commit messages
 - Homebrew formula
@@ -338,6 +344,7 @@ These areas are either stubbed, incomplete, or planned for future phases:
 - VS Code Marketplace publish
 
 ### Known Rough Edges
+
 - `lore diff` uses store lookups for semantic context but the diff-between-refs resolution is basic
 - The `--rerank` path is wired but the reranker itself returns results unchanged
 - Shell integration installs an RC file block but does not yet provide shell completions

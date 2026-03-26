@@ -11,7 +11,7 @@ lore is a single Rust binary that transforms your git history into a queryable s
 
 ## The Problem
 
-When an LLM agent needs to understand *why* a decision was made in your codebase, it typically reads 5–20 source files and still guesses:
+When an LLM agent needs to understand _why_ a decision was made in your codebase, it typically reads 5–20 source files and still guesses:
 
 ```
 Agent today — "why was the retry limit set to 3?":
@@ -43,7 +43,7 @@ lore reduces agent token usage by ~95% for history-related questions by indexing
 - It does not make LLM API calls — retrieval commands work offline with zero LLM dependency
 - It does not modify git history, commit files, or change branches
 - It does not send any data to a server or cloud service — all data stays in `~/.lore/` on your machine
-- It is not a coding assistant — it feeds context *to* assistants
+- It is not a coding assistant — it feeds context _to_ assistants
 
 ---
 
@@ -53,13 +53,13 @@ lore reduces agent token usage by ~95% for history-related questions by indexing
 
 Download the latest release from [GitHub Releases](https://github.com/venki0552/lore-cli/releases):
 
-| Platform         | Binary                      |
-| ---------------- | --------------------------- |
-| Linux x86_64     | `lore-linux-x86_64`         |
-| Linux aarch64    | `lore-linux-aarch64`        |
-| macOS ARM (M1+)  | `lore-darwin-arm64`         |
-| macOS Intel      | `lore-darwin-x86_64`        |
-| Windows x86_64   | `lore-windows-x86_64.exe`   |
+| Platform        | Binary                    |
+| --------------- | ------------------------- |
+| Linux x86_64    | `lore-linux-x86_64`       |
+| Linux aarch64   | `lore-linux-aarch64`      |
+| macOS ARM (M1+) | `lore-darwin-arm64`       |
+| macOS Intel     | `lore-darwin-x86_64`      |
+| Windows x86_64  | `lore-windows-x86_64.exe` |
 
 Each binary ships with a `.sha256` checksum file. After downloading, verify and install:
 
@@ -113,66 +113,66 @@ On first `lore init`, the `all-MiniLM-L6-v2` embedding model (~90 MB) is downloa
 
 ### Core Commands
 
-| Command                          | Description                                              |
-| -------------------------------- | -------------------------------------------------------- |
-| `lore init`                      | Index repo, install git hooks, register MCP              |
-| `lore index`                     | Explicitly run a full index of the current branch        |
-| `lore reindex`                   | Delta-only reindex (fast, used by git hooks)             |
-| `lore why <query>`               | Semantic search over git history                         |
-| `lore blame <file>`              | Semantic ownership — who changed this file and why       |
-| `lore bisect <bug_description>`  | Find which commit likely introduced a bug                |
-| `lore log <query>`               | Intent-grouped semantic git log                          |
-| `lore diff [base] [head]`        | Intent-level diff between two refs (default: HEAD~1..HEAD)|
-| `lore revert-risk <commit>`      | Blast radius analysis before reverting a commit          |
-| `lore status`                    | Show indexed commits, storage, and MCP state             |
-| `lore cleanup`                   | Remove stale branch indices (default: older than 7 days) |
-| `lore doctor`                    | Diagnose and optionally fix lore setup issues            |
-| `lore serve`                     | Start the MCP server (stdio JSON-RPC 2.0)                |
-| `lore mcp`                       | Alias for `lore serve`                                   |
-| `lore sync`                      | Manually trigger reindex (for CI use)                    |
+| Command                         | Description                                                |
+| ------------------------------- | ---------------------------------------------------------- |
+| `lore init`                     | Index repo, install git hooks, register MCP                |
+| `lore index`                    | Explicitly run a full index of the current branch          |
+| `lore reindex`                  | Delta-only reindex (fast, used by git hooks)               |
+| `lore why <query>`              | Semantic search over git history                           |
+| `lore blame <file>`             | Semantic ownership — who changed this file and why         |
+| `lore bisect <bug_description>` | Find which commit likely introduced a bug                  |
+| `lore log <query>`              | Intent-grouped semantic git log                            |
+| `lore diff [base] [head]`       | Intent-level diff between two refs (default: HEAD~1..HEAD) |
+| `lore revert-risk <commit>`     | Blast radius analysis before reverting a commit            |
+| `lore status`                   | Show indexed commits, storage, and MCP state               |
+| `lore cleanup`                  | Remove stale branch indices (default: older than 7 days)   |
+| `lore doctor`                   | Diagnose and optionally fix lore setup issues              |
+| `lore serve`                    | Start the MCP server (stdio JSON-RPC 2.0)                  |
+| `lore mcp`                      | Alias for `lore serve`                                     |
+| `lore sync`                     | Manually trigger reindex (for CI use)                      |
 
 ### Command Flags
 
 All commands support:
 
-| Flag              | Description                                                  |
-| ----------------- | ------------------------------------------------------------ |
-| `--format <fmt>`  | Output format: `text` (default), `xml`, `json`               |
-| `--max-tokens N`  | Limit output to N tokens (default: 4096)                     |
-| `--silent`        | Suppress non-result output (used by git hooks)               |
+| Flag             | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `--format <fmt>` | Output format: `text` (default), `xml`, `json` |
+| `--max-tokens N` | Limit output to N tokens (default: 4096)       |
+| `--silent`       | Suppress non-result output (used by git hooks) |
 
 **`lore init` specific flags:**
 
-| Flag          | Description                                      |
-| ------------- | ------------------------------------------------ |
-| `--global`    | Install globally with shell integration          |
-| `--background`| Run the initial index in the background          |
-| `--mcp-only`  | Only register MCP, skip hooks                    |
-| `--hooks-only`| Only install git hooks                           |
-| `--shell-only`| Only install shell integration (zsh/bash/fish)   |
+| Flag           | Description                                    |
+| -------------- | ---------------------------------------------- |
+| `--global`     | Install globally with shell integration        |
+| `--background` | Run the initial index in the background        |
+| `--mcp-only`   | Only register MCP, skip hooks                  |
+| `--hooks-only` | Only install git hooks                         |
+| `--shell-only` | Only install shell integration (zsh/bash/fish) |
 
 **`lore why` specific flags:**
 
-| Flag              | Description                              |
-| ----------------- | ---------------------------------------- |
-| `--limit N`       | Number of results (default: 3)           |
-| `--since <date>`  | Filter commits after ISO date            |
-| `--author <name>` | Filter by author name                    |
-| `--module <path>` | Filter to commits touching a path        |
-| `--rerank`        | Enable cross-encoder reranking (~50ms)   |
+| Flag              | Description                            |
+| ----------------- | -------------------------------------- |
+| `--limit N`       | Number of results (default: 3)         |
+| `--since <date>`  | Filter commits after ISO date          |
+| `--author <name>` | Filter by author name                  |
+| `--module <path>` | Filter to commits touching a path      |
+| `--rerank`        | Enable cross-encoder reranking (~50ms) |
 
 **`lore cleanup` specific flags:**
 
-| Flag              | Description                                         |
-| ----------------- | --------------------------------------------------- |
-| `--older-than N`  | Remove indices older than N days (default: 7)       |
-| `--dry-run`       | Show what would be deleted without deleting          |
+| Flag             | Description                                   |
+| ---------------- | --------------------------------------------- |
+| `--older-than N` | Remove indices older than N days (default: 7) |
+| `--dry-run`      | Show what would be deleted without deleting   |
 
 **`lore diff` specific flags:**
 
-| Flag             | Description                    |
-| ---------------- | ------------------------------ |
-| `--breaking-only`| Show only breaking-change commits |
+| Flag              | Description                       |
+| ----------------- | --------------------------------- |
+| `--breaking-only` | Show only breaking-change commits |
 
 ---
 
@@ -196,15 +196,16 @@ lore why "authentication changes" --format json --max-tokens 2000
 
 lore runs as a local MCP (Model Context Protocol) server, exposing 5 read-only tools to AI agents:
 
-| MCP Tool       | Description                                                       |
-| -------------- | ----------------------------------------------------------------- |
-| `lore_why`     | Semantic search over git history: "Why does this code exist?"     |
-| `lore_blame`   | Find semantic ownership of a file or function                     |
-| `lore_log`     | Search git history grouped by intent                              |
-| `lore_bisect`  | Find which commit likely introduced a bug                         |
-| `lore_status`  | Get current index status and statistics                           |
+| MCP Tool      | Description                                                   |
+| ------------- | ------------------------------------------------------------- |
+| `lore_why`    | Semantic search over git history: "Why does this code exist?" |
+| `lore_blame`  | Find semantic ownership of a file or function                 |
+| `lore_log`    | Search git history grouped by intent                          |
+| `lore_bisect` | Find which commit likely introduced a bug                     |
+| `lore_status` | Get current index status and statistics                       |
 
 The MCP server enforces:
+
 - **Rate limiting**: 60 requests per minute
 - **Output cap**: 50,000 bytes per response
 - **Request timeout**: 5 seconds per call
@@ -218,9 +219,9 @@ Config files for each supported agent are in the `configs/` directory of this re
 
 ```json
 {
-  "mcpServers": {
-    "lore": { "command": "lore", "args": ["serve"] }
-  }
+	"mcpServers": {
+		"lore": { "command": "lore", "args": ["serve"] }
+	}
 }
 ```
 
@@ -228,9 +229,9 @@ Config files for each supported agent are in the `configs/` directory of this re
 
 ```json
 {
-  "mcpServers": {
-    "lore": { "command": "lore", "args": ["serve"] }
-  }
+	"mcpServers": {
+		"lore": { "command": "lore", "args": ["serve"] }
+	}
 }
 ```
 
@@ -238,9 +239,9 @@ Config files for each supported agent are in the `configs/` directory of this re
 
 ```json
 {
-  "mcpServers": {
-    "lore": { "command": "lore", "args": ["serve"] }
-  }
+	"mcpServers": {
+		"lore": { "command": "lore", "args": ["serve"] }
+	}
 }
 ```
 
@@ -350,16 +351,16 @@ Each query runs through a hybrid pipeline:
 
 lore treats security as a first-class requirement, not an afterthought:
 
-| Threat                   | Mitigation                                                               |
-| ------------------------ | ------------------------------------------------------------------------ |
-| Git mutation             | lore is 100% read-only — no git commands that write are ever called      |
-| Prompt injection         | All commit messages sanitized; `<`, `>`, `]]>` stripped from all output  |
-| Secret leakage           | 15+ secret patterns detected and replaced before any data reaches the index |
-| Path traversal           | All index paths constructed through `safe_index_path()` with prefix checks |
-| CDATA injection          | XML output wraps all commit data in CDATA, `]]>` sequences are escaped   |
-| Context overflow         | Configurable token budget enforced on all responses                      |
-| MCP abuse                | 60 req/min rate limit, 50KB output cap, 5s request timeout               |
-| Directory permission     | `~/.lore/indices/` created with `0700` (owner-only) on Unix              |
+| Threat               | Mitigation                                                                  |
+| -------------------- | --------------------------------------------------------------------------- |
+| Git mutation         | lore is 100% read-only — no git commands that write are ever called         |
+| Prompt injection     | All commit messages sanitized; `<`, `>`, `]]>` stripped from all output     |
+| Secret leakage       | 15+ secret patterns detected and replaced before any data reaches the index |
+| Path traversal       | All index paths constructed through `safe_index_path()` with prefix checks  |
+| CDATA injection      | XML output wraps all commit data in CDATA, `]]>` sequences are escaped      |
+| Context overflow     | Configurable token budget enforced on all responses                         |
+| MCP abuse            | 60 req/min rate limit, 50KB output cap, 5s request timeout                  |
+| Directory permission | `~/.lore/indices/` created with `0700` (owner-only) on Unix                 |
 
 Secret patterns detected and redacted before storage include: AWS access keys, GitHub PATs, Anthropic/OpenAI API keys, Google API keys, Stripe keys, Twilio SIDs, private key blocks, JWT tokens, database connection strings with credentials, and generic `key=value` credential patterns.
 
@@ -405,11 +406,11 @@ secrets_redacted     — count of secrets redacted (what they were is never stor
 
 Three GitHub Actions workflows run automatically:
 
-| Workflow         | Trigger              | What it does                                                         |
-| ---------------- | -------------------- | -------------------------------------------------------------------- |
-| `ci.yml`         | Every PR + push to main | `cargo test`, `cargo clippy -D warnings`, `cargo fmt --check`, `cargo audit`, security invariant tests, VS Code plugin compile |
-| `release.yml`    | Push a `v*` tag      | Builds for 5 platforms, creates GitHub Release with checksums        |
-| `benchmark.yml`  | PR to main           | Regression guard — fails if search quality drops >5%                 |
+| Workflow        | Trigger                 | What it does                                                                                                                   |
+| --------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `ci.yml`        | Every PR + push to main | `cargo test`, `cargo clippy -D warnings`, `cargo fmt --check`, `cargo audit`, security invariant tests, VS Code plugin compile |
+| `release.yml`   | Push a `v*` tag         | Builds for 5 platforms, creates GitHub Release with checksums                                                                  |
+| `benchmark.yml` | PR to main              | Regression guard — fails if search quality drops >5%                                                                           |
 
 ---
 
@@ -488,9 +489,9 @@ cd plugin && npm install && npm run compile
 
 ## Environment Variables
 
-| Variable    | Description                                                        |
-| ----------- | ------------------------------------------------------------------ |
-| `LORE_LOG`  | Tracing log level: `error`, `warn` (default), `info`, `debug`, `trace` |
+| Variable   | Description                                                            |
+| ---------- | ---------------------------------------------------------------------- |
+| `LORE_LOG` | Tracing log level: `error`, `warn` (default), `info`, `debug`, `trace` |
 
 Logs are written to **stderr** only, never to stdout (which is reserved for MCP JSON-RPC output).
 
