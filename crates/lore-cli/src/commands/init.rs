@@ -40,7 +40,7 @@ pub struct InitArgs {
 pub async fn run(args: InitArgs) -> Result<(), LoreError> {
     // 1. Find git root
     let git_root =
-        detector::find_git_root(&std::env::current_dir().map_err(|e| LoreError::Io(e))?)?;
+        detector::find_git_root(&std::env::current_dir().map_err(LoreError::Io)?)?;
 
     if !args.silent {
         println!("{}", "lore init".bold());
@@ -56,7 +56,7 @@ pub async fn run(args: InitArgs) -> Result<(), LoreError> {
 
     // 3. Ensure ~/.lore/ directory exists
     let lore_home = paths::lore_home();
-    std::fs::create_dir_all(&lore_home).map_err(|e| LoreError::Io(e))?;
+    std::fs::create_dir_all(&lore_home).map_err(LoreError::Io)?;
 
     if !args.silent {
         println!("{} Created {}", "✓".green(), lore_home.display());
