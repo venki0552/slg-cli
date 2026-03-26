@@ -1582,124 +1582,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lore-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "colored",
- "dialoguer",
- "dirs",
- "git2",
- "indicatif",
- "lore-core",
- "lore-git",
- "lore-index",
- "lore-mcp",
- "lore-output",
- "lore-security",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "lore-core"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "dirs",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "toml",
-]
-
-[[package]]
-name = "lore-git"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "dirs",
- "git2",
- "lore-core",
- "lore-security",
- "regex",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "lore-index"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "fastembed",
- "lore-core",
- "lore-security",
- "rusqlite",
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "lore-mcp"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "lore-core",
- "lore-git",
- "lore-index",
- "lore-output",
- "lore-security",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "lore-output"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "lore-core",
- "lore-index",
- "lore-security",
- "quick-xml",
- "serde_json",
-]
-
-[[package]]
-name = "lore-security"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "dirs",
- "lore-core",
- "regex",
- "tempfile",
- "thiserror 2.0.18",
- "tracing",
- "unicode-normalization",
-]
-
-[[package]]
 name = "macro_rules_attribute"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2758,6 +2640,124 @@ name = "slab"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
+
+[[package]]
+name = "slg-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "colored",
+ "dialoguer",
+ "dirs",
+ "git2",
+ "indicatif",
+ "serde_json",
+ "slg-core",
+ "slg-git",
+ "slg-index",
+ "slg-mcp",
+ "slg-output",
+ "slg-security",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "slg-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "dirs",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "toml",
+]
+
+[[package]]
+name = "slg-git"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "dirs",
+ "git2",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "slg-core",
+ "slg-security",
+ "tempfile",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "slg-index"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "fastembed",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "slg-core",
+ "slg-security",
+ "tempfile",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "slg-mcp"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "slg-core",
+ "slg-git",
+ "slg-index",
+ "slg-output",
+ "slg-security",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "slg-output"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "quick-xml",
+ "serde_json",
+ "slg-core",
+ "slg-index",
+ "slg-security",
+]
+
+[[package]]
+name = "slg-security"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "dirs",
+ "regex",
+ "slg-core",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tracing",
+ "unicode-normalization",
+]
 
 [[package]]
 name = "smallvec"

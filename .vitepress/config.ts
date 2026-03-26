@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 import mathjax3 from 'markdown-it-mathjax3'
 
 export default defineConfig({
-  title: 'lore',
+  title: 'slg',
   description: 'Semantic git intelligence for LLM agents — transform your git history into a queryable knowledge base.',
 
   // All .md files are read from the repo root
@@ -11,7 +11,7 @@ export default defineConfig({
   head: [
     ['meta', { name: 'theme-color', content: '#646cff' }],
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:title', content: 'lore — Semantic git intelligence' }],
+    ['meta', { property: 'og:title', content: 'slg — Semantic git intelligence' }],
     ['meta', { property: 'og:description', content: 'Transform your git history into a queryable knowledge base for LLM agents.' }],
   ],
 
@@ -23,7 +23,7 @@ export default defineConfig({
   },
 
   themeConfig: {
-    logo: { light: '/logo-light.svg', dark: '/logo-dark.svg', alt: 'lore' },
+    logo: { light: '/logo-light.svg', dark: '/logo-dark.svg', alt: 'slg' },
 
     nav: [
       { text: 'Get Started', link: '/docs/getting-started' },
@@ -33,7 +33,7 @@ export default defineConfig({
       {
         text: 'v0.1.0',
         items: [
-          { text: 'Changelog', link: 'https://github.com/venki0552/lore-cli/releases' },
+          { text: 'Changelog', link: 'https://github.com/venki0552/slg/releases' },
           { text: 'Contributing', link: '/CONTRIBUTING' },
         ],
       },
@@ -67,23 +67,23 @@ export default defineConfig({
         text: 'Project',
         items: [
           { text: 'Contributing', link: '/CONTRIBUTING' },
-          { text: 'GitHub Releases', link: 'https://github.com/venki0552/lore-cli/releases' },
+          { text: 'GitHub Releases', link: 'https://github.com/venki0552/slg/releases' },
         ],
       },
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/venki0552/lore-cli' },
+      { icon: 'github', link: 'https://github.com/venki0552/slg' },
     ],
 
     editLink: {
-      pattern: 'https://github.com/venki0552/lore-cli/edit/main/:path',
+      pattern: 'https://github.com/venki0552/slg/edit/main/:path',
       text: 'Edit this page on GitHub',
     },
 
     footer: {
       message: 'Released under the MIT OR Apache-2.0 License.',
-      copyright: 'Copyright © 2024–2026 lore contributors',
+      copyright: 'Copyright © 2024–2026 slg contributors',
     },
 
     search: {

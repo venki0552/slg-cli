@@ -14,8 +14,8 @@ const AGENT_CONFIGS: AgentConfig[] = [
   { name: 'Windsurf', configPath: '~/.windsurf/mcp.json', key: 'mcpServers' },
 ];
 
-const LORE_MCP_ENTRY = {
-  command: 'lore',
+const SLG_MCP_ENTRY = {
+  command: 'slg',
   args: ['mcp', 'start'],
 };
 
@@ -26,7 +26,7 @@ function expandHome(filepath: string): string {
   return filepath;
 }
 
-/// Register lore as an MCP server with all detected AI agents
+/// Register slg as an MCP server with all detected AI agents
 export async function registerMCPWithAllAgents(binaryPath: string): Promise<string[]> {
   const registered: string[] = [];
 
@@ -46,19 +46,19 @@ export async function registerMCPWithAllAgents(binaryPath: string): Promise<stri
         existing = JSON.parse(content);
       }
 
-      // Add lore entry under mcpServers, preserving existing entries
+      // Add slg entry under mcpServers, preserving existing entries
       const servers = (existing[agent.key] as Record<string, unknown>) || {};
-      servers['lore'] = {
-        ...LORE_MCP_ENTRY,
+      servers['slg'] = {
+        ...SLG_MCP_ENTRY,
         command: binaryPath,
       };
       existing[agent.key] = servers;
 
       fs.writeFileSync(configPath, JSON.stringify(existing, null, 2));
       registered.push(agent.name);
-      console.log(`lore: registered MCP with ${agent.name}`);
+      console.log(`slg: registered MCP with ${agent.name}`);
     } catch (e) {
-      console.error(`lore: failed to register MCP with ${agent.name}:`, e);
+      console.error(`slg: failed to register MCP with ${agent.name}:`, e);
     }
   }
 

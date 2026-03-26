@@ -1,6 +1,6 @@
 # Security Design
 
-lore is designed to index git history without leaking secrets, credentials, or sensitive data to the search index or to AI agents. This document describes the threat model and every mitigation layer.
+slg is designed to index git history without leaking secrets, credentials, or sensitive data to the search index or to AI agents. This document describes the threat model and every mitigation layer.
 
 ---
 
@@ -33,7 +33,7 @@ lore is designed to index git history without leaking secrets, credentials, or s
 
 ## Secret Redaction
 
-The `SecretRedactor` in `lore-security` scans every `diff_summary` field **before it is written to SQLite**. Secrets never reach the index. Patterns are matched in order (most-specific first to prevent partial overlap):
+The `SecretRedactor` in `slg-security` scans every `diff_summary` field **before it is written to SQLite**. Secrets never reach the index. Patterns are matched in order (most-specific first to prevent partial overlap):
 
 | Pattern                         | Replacement token        | Example match                 |
 | ------------------------------- | ------------------------ | ----------------------------- |
@@ -62,13 +62,13 @@ The `SecretRedactor` in `lore-security` scans every `diff_summary` field **befor
 
 ## Path Security
 
-Index databases are stored under `~/.lore/indices/<repo_hash>/<branch>.db`. Branch names are user-controlled and could contain path traversal sequences. The `safe_index_path()` function in `lore-security` enforces:
+Index databases are stored under `~/.slg/indices/<repo_hash>/<branch>.db`. Branch names are user-controlled and could contain path traversal sequences. The `safe_index_path()` function in `slg-security` enforces:
 
 1. **Character allowlist** — only ASCII alphanumerics, `-`, and `_` survive. `.` is replaced with `_` (prevents `.ssh`, `..`).
 2. **Length cap** — branch names are truncated to 64 characters.
 3. **Dangerous name rejection** — empty names and single-underscore names fall back to `unknown-branch`.
 4. **Leading-dash rejection** — branch names starting with `-` are prefixed with `b_` to prevent them being interpreted as flags by shell tools.
-5. **Prefix check** — after constructing the candidate path, lore verifies it is lexically under the `~/.lore/indices/<repo_hash>/` base. Any path that would escape returns a `PathTraversal` error.
+5. **Prefix check** — after constructing the candidate path, slg verifies it is lexically under the `~/.slg/indices/<repo_hash>/` base. Any path that would escape returns a `PathTraversal` error.
 6. **`..` component check** — every component of the path is inspected for `ParentDir`; any match immediately returns a `PathTraversal` error.
 
 `safe_index_path()` is the **only** function in the codebase that is allowed to construct index paths. All other code calls it.
@@ -93,12 +93,12 @@ This means a commit message that contains XML tags or what looks like an XML ins
 
 ## File System Permissions
 
-All directories created by lore under `~/.lore/` are created with **`0o700` permissions** on Unix systems (owner read/write/execute only). This includes:
+All directories created by slg under `~/.slg/` are created with **`0o700` permissions** on Unix systems (owner read/write/execute only). This includes:
 
 | Directory                      | Purpose                               |
 | ------------------------------ | ------------------------------------- |
-| `~/.lore/`                     | Root of all lore data                 |
-| `~/.lore/indices/<repo_hash>/` | Per-repo, per-branch SQLite databases |
+| `~/.slg/`                     | Root of all slg data                 |
+| `~/.slg/indices/<repo_hash>/` | Per-repo, per-branch SQLite databases |
 
 On Windows, explicit permission setting is a no-op (the OS ACLs on the user's home directory provide equivalent isolation).
 
@@ -106,10 +106,10 @@ On Windows, explicit permission setting is a no-op (the OS ACLs on the user's ho
 
 ## Security Logging
 
-Any redaction event or path traversal attempt is written to `~/.lore/security.log` in addition to the application warning log. This file can be inspected to audit how many secrets were detected during indexing.
+Any redaction event or path traversal attempt is written to `~/.slg/security.log` in addition to the application warning log. This file can be inspected to audit how many secrets were detected during indexing.
 
 ```
-~/.lore/security.log
+~/.slg/security.log
 ```
 
 ---
@@ -119,7 +119,7 @@ Any redaction event or path traversal attempt is written to `~/.lore/security.lo
 All MCP tool definitions are explicitly annotated read-only. The MCP server:
 
 - Does **not** implement any `resources/write`, `sampling`, or other write-capable MCP capabilities.
-- Only invokes lore CLI sub-commands: `why`, `blame`, `log`, `bisect`, and `status`.
+- Only invokes slg CLI sub-commands: `why`, `blame`, `log`, `bisect`, and `status`.
 - None of those sub-commands modify the git repository or the index.
 
 The `capabilities` object returned by `initialize` only lists `"tools": {}`, with no write methods.
@@ -128,10 +128,10 @@ The `capabilities` object returned by `initialize` only lists `"tools": {}`, wit
 
 ## Injection Flagging
 
-During indexing, lore checks every commit body and diff summary for patterns that resemble prompt-injection attempts (e.g., `Ignore previous instructions`, `[[SYSTEM]]`, or other LLM steering phrases). When a match is found:
+During indexing, slg checks every commit body and diff summary for patterns that resemble prompt-injection attempts (e.g., `Ignore previous instructions`, `[[SYSTEM]]`, or other LLM steering phrases). When a match is found:
 
 - The `injection_flagged` boolean column in SQLite is set to `true`.
 - The commit is still indexed (for auditability) but all MCP output includes the `injection_flagged` field so AI agents can treat it with appropriate suspicion.
-- The flag is surfaced in `lore doctor` as a warning count.
+- The flag is surfaced in `slg doctor` as a warning count.
 
 Flagged commits do **not** have their content removed — they are visible in search results — but consumers are expected to treat them as untrusted.

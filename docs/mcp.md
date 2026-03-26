@@ -1,6 +1,6 @@
 # MCP Integration Guide
 
-`lore serve` (alias: `lore mcp`) exposes the lore index as a **Model Context Protocol (MCP)** server over `stdio`, letting AI coding agents — Claude Code, Cursor, Windsurf, and GitHub Copilot — query your git history in real time.
+`slg serve` (alias: `slg mcp`) exposes the slg index as a **Model Context Protocol (MCP)** server over `stdio`, letting AI coding agents — Claude Code, Cursor, Windsurf, and GitHub Copilot — query your git history in real time.
 
 ---
 
@@ -10,11 +10,11 @@
 - [Starting the Server](#starting-the-server)
 - [Server Limits](#server-limits)
 - [Tools Reference](#tools-reference)
-  - [lore_why](#lore_why)
-  - [lore_blame](#lore_blame)
-  - [lore_log](#lore_log)
-  - [lore_bisect](#lore_bisect)
-  - [lore_status](#lore_status)
+  - [slg_why](#slg_why)
+  - [slg_blame](#slg_blame)
+  - [slg_log](#slg_log)
+  - [slg_bisect](#slg_bisect)
+  - [slg_status](#slg_status)
 - [JSON-RPC Methods](#json-rpc-methods)
 - [Output Format](#output-format)
 - [Error Handling](#error-handling)
@@ -30,7 +30,7 @@
 | Transport      | `stdio` (stdin → stdout, stderr for logs) |
 | Protocol       | JSON-RPC 2.0                              |
 | MCP Version    | `2024-11-05`                              |
-| Server Name    | `lore`                                    |
+| Server Name    | `slg`                                    |
 | Server Version | `0.1.0`                                   |
 | Capability     | `tools` (read-only, no writes)            |
 
@@ -40,10 +40,10 @@
 
 ```bash
 # From inside a git repository
-lore serve
+slg serve
 
 # Alias
-lore mcp
+slg mcp
 ```
 
 The server reads from `stdin` and writes to `stdout`, one JSON-RPC message per line. Log output goes to `stderr`.
@@ -79,7 +79,7 @@ When the response is too large, only the first 50 KB are returned with a truncat
 
 ## Tools Reference
 
-### lore_why
+### slg_why
 
 Search git history semantically. Returns commits that explain **why** a decision was made.
 
@@ -102,7 +102,7 @@ Search git history semantically. Returns commits that explain **why** a decision
 	"id": 1,
 	"method": "tools/call",
 	"params": {
-		"name": "lore_why",
+		"name": "slg_why",
 		"arguments": {
 			"query": "why did we switch to async runtime",
 			"limit": 5,
@@ -115,7 +115,7 @@ Search git history semantically. Returns commits that explain **why** a decision
 **Example response (XML format):**
 
 ```xml
-<lore_results query="why did we switch to async runtime" count="1" latency_ms="42">
+<slg_results query="why did we switch to async runtime" count="1" latency_ms="42">
   <security_notice>Output may contain sanitized content.</security_notice>
   <commit rank="1" relevance="0.94">
     <hash>a1b2c3d4</hash>
@@ -127,12 +127,12 @@ Search git history semantically. Returns commits that explain **why** a decision
     <diff_summary><![CDATA[Replaced blocking IO in 8 files with async equivalents]]></diff_summary>
     <files>src/server.rs, src/handler.rs</files>
   </commit>
-</lore_results>
+</slg_results>
 ```
 
 ---
 
-### lore_blame
+### slg_blame
 
 Find semantic ownership of a file or function — shows which authors made the most meaningful commits touching that code.
 
@@ -152,7 +152,7 @@ Find semantic ownership of a file or function — shows which authors made the m
 	"id": 2,
 	"method": "tools/call",
 	"params": {
-		"name": "lore_blame",
+		"name": "slg_blame",
 		"arguments": {
 			"file": "src/auth.rs",
 			"fn": "verify_token",
@@ -164,7 +164,7 @@ Find semantic ownership of a file or function — shows which authors made the m
 
 ---
 
-### lore_log
+### slg_log
 
 Search git history and (optionally) group the results by **commit intent** (feat, fix, refactor, docs, etc.).
 
@@ -184,7 +184,7 @@ Search git history and (optionally) group the results by **commit intent** (feat
 	"id": 3,
 	"method": "tools/call",
 	"params": {
-		"name": "lore_log",
+		"name": "slg_log",
 		"arguments": {
 			"query": "authentication changes",
 			"by_intent": true
@@ -195,7 +195,7 @@ Search git history and (optionally) group the results by **commit intent** (feat
 
 ---
 
-### lore_bisect
+### slg_bisect
 
 Find which commit likely introduced a bug. Performs semantic search against the bug description to rank candidate commits.
 
@@ -214,7 +214,7 @@ Find which commit likely introduced a bug. Performs semantic search against the 
 	"id": 4,
 	"method": "tools/call",
 	"params": {
-		"name": "lore_bisect",
+		"name": "slg_bisect",
 		"arguments": {
 			"bug_description": "login fails with OAuth providers after the JWT refactor",
 			"limit": 3
@@ -225,9 +225,9 @@ Find which commit likely introduced a bug. Performs semantic search against the 
 
 ---
 
-### lore_status
+### slg_status
 
-Get current lore index status — whether it is indexed, up to date, and how many commits it covers.
+Get current slg index status — whether it is indexed, up to date, and how many commits it covers.
 
 **Input schema:** No parameters.
 
@@ -239,7 +239,7 @@ Get current lore index status — whether it is indexed, up to date, and how man
 	"id": 5,
 	"method": "tools/call",
 	"params": {
-		"name": "lore_status",
+		"name": "slg_status",
 		"arguments": {}
 	}
 }
@@ -290,7 +290,7 @@ Response:
 	"id": 0,
 	"result": {
 		"protocolVersion": "2024-11-05",
-		"serverInfo": { "name": "lore", "version": "0.1.0" },
+		"serverInfo": { "name": "slg", "version": "0.1.0" },
 		"capabilities": { "tools": {} }
 	}
 }
@@ -302,13 +302,13 @@ Response:
 
 All tool results default to **XML** output with commit data wrapped in `<![CDATA[...]]>` sections to prevent injection and preserve formatting. XML output always includes a `<security_notice>` element.
 
-Pass `"format": "json"` in `lore_why` to receive structured JSON instead.
+Pass `"format": "json"` in `slg_why` to receive structured JSON instead.
 
 ---
 
 ## Error Handling
 
-When the index is not yet built (e.g., `lore index` is still running), every tool call returns an initializing response instead of an error:
+When the index is not yet built (e.g., `slg index` is still running), every tool call returns an initializing response instead of an error:
 
 ```json
 {
@@ -318,7 +318,7 @@ When the index is not yet built (e.g., `lore index` is still running), every too
 		"content": [
 			{
 				"type": "text",
-				"text": "{\"status\":\"initializing\",\"message\":\"lore index is being built. Please wait.\",\"eta_seconds\":15}"
+				"text": "{\"status\":\"initializing\",\"message\":\"slg index is being built. Please wait.\",\"eta_seconds\":15}"
 			}
 		]
 	}
@@ -339,7 +339,7 @@ Standard JSON-RPC error codes:
 
 ## Auto-Registration via VS Code Extension
 
-When the VS Code extension is installed and a workspace is open, it automatically registers the lore MCP server with every supported AI agent config file it finds on disk:
+When the VS Code extension is installed and a workspace is open, it automatically registers the slg MCP server with every supported AI agent config file it finds on disk:
 
 | Agent       | Config file                            |
 | ----------- | -------------------------------------- |
@@ -347,12 +347,12 @@ When the VS Code extension is installed and a workspace is open, it automaticall
 | Cursor      | `~/.cursor/mcp.json`                   |
 | Windsurf    | `~/.windsurf/mcp.json`                 |
 
-The extension writes the entry only if the config directory already exists (i.e., the agent is installed). The lore binary path is resolved per platform.
+The extension writes the entry only if the config directory already exists (i.e., the agent is installed). The slg binary path is resolved per platform.
 
 Disable this behaviour in VS Code settings:
 
 ```json
-{ "lore.autoRegisterMCP": false }
+{ "slg.autoRegisterMCP": false }
 ```
 
 ---
@@ -364,8 +364,8 @@ Disable this behaviour in VS Code settings:
 ```json
 {
 	"mcpServers": {
-		"lore": {
-			"command": "lore",
+		"slg": {
+			"command": "slg",
 			"args": ["serve"],
 			"env": {}
 		}
@@ -378,8 +378,8 @@ Disable this behaviour in VS Code settings:
 ```json
 {
 	"mcpServers": {
-		"lore": {
-			"command": "lore",
+		"slg": {
+			"command": "slg",
 			"args": ["serve"]
 		}
 	}
@@ -391,8 +391,8 @@ Disable this behaviour in VS Code settings:
 ```json
 {
 	"mcpServers": {
-		"lore": {
-			"command": "lore",
+		"slg": {
+			"command": "slg",
 			"args": ["serve"]
 		}
 	}
@@ -404,13 +404,13 @@ Disable this behaviour in VS Code settings:
 ```json
 {
 	"servers": {
-		"lore": {
+		"slg": {
 			"type": "stdio",
-			"command": "lore",
+			"command": "slg",
 			"args": ["serve"]
 		}
 	}
 }
 ```
 
-> **Note:** Ensure `lore` is on your `PATH`, or replace `"lore"` with the absolute path to the binary (e.g., `~/.lore/bin/lore`).
+> **Note:** Ensure `slg` is on your `PATH`, or replace `"slg"` with the absolute path to the binary (e.g., `~/.slg/bin/slg`).

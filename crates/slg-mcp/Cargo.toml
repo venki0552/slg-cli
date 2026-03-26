@@ -1,0 +1,19 @@
+[package]
+name = "slg-mcp"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+slg-core = { path = "../slg-core" }
+slg-git = { path = "../slg-git" }
+slg-index = { path = "../slg-index" }
+slg-output = { path = "../slg-output" }
+slg-security = { path = "../slg-security" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }

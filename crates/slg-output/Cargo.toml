@@ -1,0 +1,15 @@
+[package]
+name = "slg-output"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+slg-core = { path = "../slg-core" }
+slg-security = { path = "../slg-security" }
+slg-index = { path = "../slg-index" }
+serde_json = { workspace = true }
+quick-xml = { version = "0.37", features = ["serialize"] }
+anyhow = { workspace = true }
+chrono = { workspace = true }

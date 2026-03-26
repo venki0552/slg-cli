@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// lore-cli npm proxy
+// slg npm proxy
 // Downloads the correct platform binary from GitHub Releases on first run,
-// verifies its SHA-256 checksum, caches it at ~/.lore/bin/lore, then execs
+// verifies its SHA-256 checksum, caches it at ~/.slg/bin/slg, then execs
 // all CLI arguments through to it.  Zero npm dependencies.
 "use strict";
 
@@ -16,21 +16,21 @@ const crypto = require("crypto");
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const VERSION = "0.1.0";
-const BASE_URL = `https://github.com/venki0552/lore-cli/releases/download/v${VERSION}`;
+const BASE_URL = `https://github.com/venki0552/slg/releases/download/v${VERSION}`;
 
 /** Maps Node.js `process.platform-process.arch` to a release binary name. */
 const BINARIES = {
-	"linux-x64": "lore-linux-x86_64",
-	"linux-arm64": "lore-linux-aarch64",
-	"darwin-arm64": "lore-darwin-arm64",
-	"darwin-x64": "lore-darwin-x86_64",
-	"win32-x64": "lore-windows-x86_64.exe",
+	"linux-x64": "slg-linux-x86_64",
+	"linux-arm64": "slg-linux-aarch64",
+	"darwin-arm64": "slg-darwin-arm64",
+	"darwin-x64": "slg-darwin-x86_64",
+	"win32-x64": "slg-windows-x86_64.exe",
 };
 
 // ─── Path helpers ─────────────────────────────────────────────────────────────
 
-const BIN_DIR = path.join(os.homedir(), ".lore", "bin");
-const BIN_NAME = process.platform === "win32" ? "lore.exe" : "lore";
+const BIN_DIR = path.join(os.homedir(), ".slg", "bin");
+const BIN_NAME = process.platform === "win32" ? "slg.exe" : "slg";
 const BIN_PATH = path.join(BIN_DIR, BIN_NAME);
 
 function platformKey() {
@@ -131,13 +131,11 @@ async function downloadAndInstall() {
 	const binaryName = BINARIES[key];
 
 	if (!binaryName) {
-		console.error(`\nlore-cli: unsupported platform "${key}"`);
+		console.error(`\nslg: unsupported platform "${key}"`);
 		console.error(
 			"Supported platforms: linux-x64, linux-arm64, darwin-arm64, darwin-x64, win32-x64",
 		);
-		console.error(
-			"Open an issue at https://github.com/venki0552/lore-cli/issues",
-		);
+		console.error("Open an issue at https://github.com/venki0552/slg/issues");
 		process.exit(1);
 	}
 
@@ -146,12 +144,12 @@ async function downloadAndInstall() {
 	const tmpBin = BIN_PATH + ".download";
 	const tmpSum = BIN_PATH + ".sha256.tmp";
 
-	process.stderr.write(`\nlore: downloading v${VERSION} for ${key}...\n`);
+	process.stderr.write(`\nslg: downloading v${VERSION} for ${key}...\n`);
 
 	// Download binary + checksum file in sequence (checksum is tiny, order doesn't matter much)
 	try {
 		await download(binaryUrl, tmpBin);
-		process.stderr.write(`lore: download complete, verifying checksum...\n`);
+		process.stderr.write(`slg: download complete, verifying checksum...\n`);
 		await download(checksumUrl, tmpSum);
 	} catch (err) {
 		// Clean up partial files
@@ -160,7 +158,7 @@ async function downloadAndInstall() {
 				fs.unlinkSync(f);
 			} catch {}
 		}
-		console.error(`\nlore: download failed — ${err.message}`);
+		console.error(`\nslg: download failed — ${err.message}`);
 		console.error("Check your internet connection and try again.");
 		process.exit(1);
 	}
@@ -171,12 +169,12 @@ async function downloadAndInstall() {
 
 	if (!ok) {
 		fs.unlinkSync(tmpBin);
-		console.error("\nlore: CHECKSUM VERIFICATION FAILED");
+		console.error("\nslg: CHECKSUM VERIFICATION FAILED");
 		console.error(`  expected: ${expected}`);
 		console.error(`  actual:   ${actual}`);
 		console.error("The downloaded binary may be corrupted or tampered with.");
 		console.error(
-			"Please open an issue at https://github.com/venki0552/lore-cli/issues",
+			"Please open an issue at https://github.com/venki0552/slg/issues",
 		);
 		process.exit(1);
 	}
@@ -195,15 +193,15 @@ async function downloadAndInstall() {
 		fs.chmodSync(BIN_PATH, 0o755);
 	}
 
-	process.stderr.write(`lore: installed to ${BIN_PATH}\n`);
+	process.stderr.write(`slg: installed to ${BIN_PATH}\n`);
 }
 
 // ─── PATH install helper ──────────────────────────────────────────────────────
 
 function printPathInstructions() {
 	const dir = BIN_DIR.replace(os.homedir(), "~");
-	console.log(`\n✓ lore v${VERSION} installed to ${BIN_PATH}\n`);
-	console.log("To use lore without npx, add it to your PATH:\n");
+	console.log(`\n✓ slg v${VERSION} installed to ${BIN_PATH}\n`);
+	console.log("To use slg without npx, add it to your PATH:\n");
 
 	if (process.platform === "win32") {
 		console.log("  PowerShell (current session):");
@@ -223,8 +221,8 @@ function printPathInstructions() {
 		console.log("  Then reload your shell:");
 		console.log(`    source ${rcFile}`);
 	}
-	console.log("\nOr run lore directly at any time with:");
-	console.log("  npx lore-cli <command>\n");
+	console.log("\nOr run slg directly at any time with:");
+	console.log("  npx slg-cli <command>\n");
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -232,7 +230,7 @@ function printPathInstructions() {
 async function main() {
 	const args = process.argv.slice(2);
 
-	// `npx lore-cli install` — download + print PATH setup instructions
+	// `npx slg install` — download + print PATH setup instructions
 	if (args[0] === "install" && args.length === 1) {
 		await downloadAndInstall();
 		printPathInstructions();
@@ -255,6 +253,6 @@ async function main() {
 }
 
 main().catch((err) => {
-	console.error(`\nlore-cli: unexpected error — ${err.message}`);
+	console.error(`\nslg: unexpected error — ${err.message}`);
 	process.exit(1);
 });

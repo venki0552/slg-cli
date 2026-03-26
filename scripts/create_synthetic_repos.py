@@ -145,9 +145,9 @@ def create_repo(output_dir: Path, name: str, num_commits: int) -> list[dict]:
 
     env = os.environ.copy()
     env["GIT_AUTHOR_NAME"] = "Benchmark Bot"
-    env["GIT_AUTHOR_EMAIL"] = "bench@lore.dev"
+    env["GIT_AUTHOR_EMAIL"] = "bench@slg.dev"
     env["GIT_COMMITTER_NAME"] = "Benchmark Bot"
-    env["GIT_COMMITTER_EMAIL"] = "bench@lore.dev"
+    env["GIT_COMMITTER_EMAIL"] = "bench@slg.dev"
 
     subprocess.run(["git", "init"], cwd=repo_path, capture_output=True, env=env, check=True)
 

@@ -1,0 +1,19 @@
+[package]
+name = "slg-security"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+slg-core = { path = "../slg-core" }
+regex = { workspace = true }
+unicode-normalization = "0.1"
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+dirs = "6"
+
+[dev-dependencies]
+tempfile = "3"

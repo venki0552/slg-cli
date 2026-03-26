@@ -1,12 +1,12 @@
 # Configuration Reference
 
-lore has two levels of configuration: the `~/.lore/config.toml` file (applies to all repos) and VS Code extension settings (applies per workspace/user).
+slg has two levels of configuration: the `~/.slg/config.toml` file (applies to all repos) and VS Code extension settings (applies per workspace/user).
 
 ---
 
 ## Contents
 
-- [~/.lore/config.toml](#loreconfigntoml)
+- [~/.slg/config.toml](#slgconfigtoml)
   - [Core settings](#core-settings)
   - [MCP server settings](#mcp-server-settings)
   - [LLM settings (Phase 2)](#llm-settings-phase-2)
@@ -17,9 +17,9 @@ lore has two levels of configuration: the `~/.lore/config.toml` file (applies to
 
 ---
 
-## ~/.lore/config.toml
+## ~/.slg/config.toml
 
-`lore init` creates this file with defaults. Edit it with any text editor. Missing keys always fall back to the documented defaults — the file is never required.
+`slg init` creates this file with defaults. Edit it with any text editor. Missing keys always fall back to the documented defaults — the file is never required.
 
 ### Core settings
 
@@ -27,7 +27,7 @@ lore has two levels of configuration: the `~/.lore/config.toml` file (applies to
 | ----------------------- | ------------------------------- | -------------------- | -------------------------------------------------------------------------------------- |
 | `cleanup_after_days`    | integer                         | `7`                  | Delete stale branch indices after this many days of inactivity (set to `0` to disable) |
 | `max_response_tokens`   | integer                         | `4096`               | Maximum tokens in any single response from a retrieval command                         |
-| `default_result_limit`  | integer                         | `3`                  | Default number of search results returned by `lore why`, `lore log`, etc.              |
+| `default_result_limit`  | integer                         | `3`                  | Default number of search results returned by `slg why`, `slg log`, etc.                |
 | `embedding_model`       | string                          | `"all-MiniLM-L6-v2"` | Embedding model name. Only `all-MiniLM-L6-v2` is currently supported                   |
 | `default_output_format` | `"text"` \| `"xml"` \| `"json"` | `"text"`             | Default output format for retrieval commands                                           |
 | `enable_reranker`       | boolean                         | `false`              | Enable cross-encoder re-ranking stage (adds ~50 ms latency, improves accuracy)         |
@@ -42,7 +42,7 @@ lore has two levels of configuration: the `~/.lore/config.toml` file (applies to
 
 ### LLM settings (Phase 2)
 
-The `[llm]` section configures lore for generation commands (`lore commit`, `lore pr`, `lore review`). This is not required for retrieval commands.
+The `[llm]` section configures slg for generation commands (`slg commit`, `slg pr`, `slg review`). This is not required for retrieval commands.
 
 > **API keys are never stored in `config.toml`.** Only the environment variable name that holds the key is stored.
 
@@ -57,7 +57,7 @@ The `[llm]` section configures lore for generation commands (`lore commit`, `lor
 ### Full example config
 
 ```toml
-# ~/.lore/config.toml
+# ~/.slg/config.toml
 
 # Core
 cleanup_after_days   = 14
@@ -83,27 +83,27 @@ timeout_secs = 30
 
 ## VS Code Extension Settings
 
-Configure these in VS Code via **File → Preferences → Settings** and search for "lore", or edit `settings.json` directly.
+Configure these in VS Code via **File → Preferences → Settings** and search for "slg", or edit `settings.json` directly.
 
-| Setting                  | Type                            | Default | Description                                                                                 |
-| ------------------------ | ------------------------------- | ------- | ------------------------------------------------------------------------------------------- |
-| `lore.autoRegisterMCP`   | boolean                         | `true`  | Auto-register the lore MCP server with Claude Code, Cursor, and Windsurf agent config files |
-| `lore.cleanupAfterDays`  | number                          | `7`     | Delete stale branch indices after N days of inactivity                                      |
-| `lore.outputFormat`      | `"text"` \| `"xml"` \| `"json"` | `"xml"` | Default output format for MCP responses                                                     |
-| `lore.enableReranker`    | boolean                         | `false` | Enable cross-encoder reranking in MCP responses (~50 ms added latency)                      |
-| `lore.indexOnActivation` | boolean                         | `true`  | Automatically index the workspace when VS Code opens                                        |
-| `lore.showStatusBar`     | boolean                         | `true`  | Show lore index status in the VS Code status bar                                            |
+| Setting                 | Type                            | Default | Description                                                                                |
+| ----------------------- | ------------------------------- | ------- | ------------------------------------------------------------------------------------------ |
+| `slg.autoRegisterMCP`   | boolean                         | `true`  | Auto-register the slg MCP server with Claude Code, Cursor, and Windsurf agent config files |
+| `slg.cleanupAfterDays`  | number                          | `7`     | Delete stale branch indices after N days of inactivity                                     |
+| `slg.outputFormat`      | `"text"` \| `"xml"` \| `"json"` | `"xml"` | Default output format for MCP responses                                                    |
+| `slg.enableReranker`    | boolean                         | `false` | Enable cross-encoder reranking in MCP responses (~50 ms added latency)                     |
+| `slg.indexOnActivation` | boolean                         | `true`  | Automatically index the workspace when VS Code opens                                       |
+| `slg.showStatusBar`     | boolean                         | `true`  | Show slg index status in the VS Code status bar                                            |
 
 Example `settings.json` snippet:
 
 ```json
 {
-	"lore.autoRegisterMCP": true,
-	"lore.outputFormat": "xml",
-	"lore.enableReranker": false,
-	"lore.indexOnActivation": true,
-	"lore.showStatusBar": true,
-	"lore.cleanupAfterDays": 14
+	"slg.autoRegisterMCP": true,
+	"slg.outputFormat": "xml",
+	"slg.enableReranker": false,
+	"slg.indexOnActivation": true,
+	"slg.showStatusBar": true,
+	"slg.cleanupAfterDays": 14
 }
 ```
 
@@ -113,8 +113,8 @@ Example `settings.json` snippet:
 
 | Variable            | Description                                                                                                          |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `LORE_LOG`          | Log level filter passed to `tracing-subscriber`. Values: `error`, `warn`, `info`, `debug`, `trace`. Default: `warn`. |
-| `LORE_CONFIG`       | Override path to `config.toml` (default: `~/.lore/config.toml`).                                                     |
+| `SLG_LOG`           | Log level filter passed to `tracing-subscriber`. Values: `error`, `warn`, `info`, `debug`, `trace`. Default: `warn`. |
+| `SLG_CONFIG`        | Override path to `config.toml` (default: `~/.slg/config.toml`).                                                      |
 | `ANTHROPIC_API_KEY` | (Phase 2) Anthropic API key — referenced by `llm.api_key_env`, never stored in config.                               |
 | `OPENAI_API_KEY`    | (Phase 2) OpenAI API key — same pattern.                                                                             |
 
@@ -125,7 +125,7 @@ Example `settings.json` snippet:
 When the same setting can be controlled at multiple levels, the order of precedence (highest wins) is:
 
 1. **CLI flag** — e.g. `--limit`, `--format`, `--max-tokens` passed directly to a command
-2. **Environment variable** — e.g. `LORE_LOG`
+2. **Environment variable** — e.g. `SLG_LOG`
 3. **VS Code extension setting** — only applies when commands are invoked from the extension
-4. **`~/.lore/config.toml`** — user-wide default
+4. **`~/.slg/config.toml`** — user-wide default
 5. **Built-in default** — always available as fallback

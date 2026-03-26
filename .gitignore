@@ -14,8 +14,8 @@ NUL
 .DS_Store
 Thumbs.db
 
-# Lore runtime
-.lore/
+# slg runtime
+.slg/
 *.db
 *.db-wal
 *.db-shm

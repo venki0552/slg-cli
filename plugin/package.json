@@ -1,9 +1,9 @@
 {
-  "name": "lore",
-  "displayName": "lore — Semantic Git Intelligence",
+  "name": "slg",
+  "displayName": "slg — Semantic Git Intelligence",
   "description": "Turn your git history into a queryable knowledge base for AI agents",
   "version": "0.1.0",
-  "publisher": "lore-sh",
+  "publisher": "slg-sh",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -16,53 +16,53 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "lore",
+      "title": "slg",
       "properties": {
-        "lore.autoRegisterMCP": {
+        "slg.autoRegisterMCP": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically register lore MCP with Claude Code, Cursor, and other agents"
+          "description": "Automatically register slg MCP with Claude Code, Cursor, and other agents"
         },
-        "lore.cleanupAfterDays": {
+        "slg.cleanupAfterDays": {
           "type": "number",
           "default": 7,
           "description": "Delete stale branch indices after N days of inactivity"
         },
-        "lore.outputFormat": {
+        "slg.outputFormat": {
           "type": "string",
           "enum": ["text", "xml", "json"],
           "default": "xml",
           "description": "Default output format for MCP responses"
         },
-        "lore.enableReranker": {
+        "slg.enableReranker": {
           "type": "boolean",
           "default": false,
           "description": "Enable cross-encoder reranking (adds ~50ms latency, improves accuracy)"
         },
-        "lore.indexOnActivation": {
+        "slg.indexOnActivation": {
           "type": "boolean",
           "default": true,
           "description": "Automatically index the workspace when VS Code opens"
         },
-        "lore.showStatusBar": {
+        "slg.showStatusBar": {
           "type": "boolean",
           "default": true,
-          "description": "Show lore status in the VS Code status bar"
+          "description": "Show slg status in the VS Code status bar"
         }
       }
     },
     "commands": [
       {
-        "command": "lore.doctor",
-        "title": "lore: Run Doctor"
+        "command": "slg.doctor",
+        "title": "slg: Run Doctor"
       },
       {
-        "command": "lore.status",
-        "title": "lore: Show Status"
+        "command": "slg.status",
+        "title": "slg: Show Status"
       },
       {
-        "command": "lore.reindex",
-        "title": "lore: Reindex Workspace"
+        "command": "slg.reindex",
+        "title": "slg: Reindex Workspace"
       }
     ]
   },

@@ -1,21 +1,21 @@
 [workspace]
 members = [
-  "crates/lore-core",
-  "crates/lore-security",
-  "crates/lore-git",
-  "crates/lore-index",
-  "crates/lore-output",
-  "crates/lore-mcp",
-  "crates/lore-cli",
+  "crates/slg-core",
+  "crates/slg-security",
+  "crates/slg-git",
+  "crates/slg-index",
+  "crates/slg-output",
+  "crates/slg-mcp",
+  "crates/slg-cli",
 ]
 resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["lore contributors"]
+authors = ["slg contributors"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/venki0552/lore-cli"
+repository = "https://github.com/venki0552/slg-cli"
 
 [workspace.dependencies]
 tokio = { version = "1", features = ["full"] }

@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
-import { ensureLoreBinary } from './binary';
-import { LoreStatusBar } from './statusbar';
+import { ensureSlgBinary } from './binary';
+import { SlgStatusBar } from './statusbar';
 import { installWatchers } from './watcher';
 import { registerMCPWithAllAgents } from './mcp';
 import { runDoctor } from './doctor';
 
 function getConfig<T>(key: string): T | undefined {
-  return vscode.workspace.getConfiguration('lore').get<T>(key);
+  return vscode.workspace.getConfiguration('slg').get<T>(key);
 }
 
 function getWorkspaceRoot(): string | undefined {
@@ -17,16 +17,16 @@ function getWorkspaceRoot(): string | undefined {
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // 1. Ensure binary (download if needed)
-  const binaryPath = await ensureLoreBinary(context);
+  const binaryPath = await ensureSlgBinary(context);
   if (!binaryPath) {
     vscode.window.showErrorMessage(
-      'lore: failed to set up binary. Check your internet connection.'
+      'slg: failed to set up binary. Check your internet connection.'
     );
     return;
   }
 
   // 2. Status bar
-  const statusBar = new LoreStatusBar(binaryPath);
+  const statusBar = new SlgStatusBar(binaryPath);
   context.subscriptions.push(statusBar);
 
   // 3. Index current workspace (background)
@@ -38,7 +38,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       { cwd: workspaceRoot },
       (error) => {
         if (error) {
-          console.error(`lore: background indexing failed: ${error.message}`);
+          console.error(`slg: background indexing failed: ${error.message}`);
         }
       }
     );
@@ -53,16 +53,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   if (getConfig<boolean>('autoRegisterMCP')) {
     const registered = await registerMCPWithAllAgents(binaryPath);
     if (registered.length > 0) {
-      console.log(`lore: registered MCP with ${registered.join(', ')}`);
+      console.log(`slg: registered MCP with ${registered.join(', ')}`);
     }
   }
 
   // 6. Register commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('lore.doctor', () => runDoctor(binaryPath)),
+    vscode.commands.registerCommand('slg.doctor', () => runDoctor(binaryPath)),
 
-    vscode.commands.registerCommand('lore.status', () => {
-      const outputChannel = vscode.window.createOutputChannel('lore status');
+    vscode.commands.registerCommand('slg.status', () => {
+      const outputChannel = vscode.window.createOutputChannel('slg status');
       outputChannel.clear();
       outputChannel.show();
       exec(
@@ -74,9 +74,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       );
     }),
 
-    vscode.commands.registerCommand('lore.reindex', () => {
+    vscode.commands.registerCommand('slg.reindex', () => {
       if (!workspaceRoot) {
-        vscode.window.showWarningMessage('lore: no workspace folder open');
+        vscode.window.showWarningMessage('slg: no workspace folder open');
         return;
       }
       statusBar.setState({ kind: 'indexing' });

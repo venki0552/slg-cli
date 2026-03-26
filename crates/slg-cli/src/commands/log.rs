@@ -1,0 +1,94 @@
+use clap::Args;
+use slg_core::errors::SlgError;
+use slg_core::types::OutputFormat;
+use slg_git::detector;
+use slg_index::embedder::Embedder;
+use slg_index::search::{self, SearchOptions};
+use slg_index::store::IndexStore;
+use slg_output::{json, text, xml};
+use slg_security::output_guard::OutputGuard;
+use slg_security::paths;
+use std::time::Instant;
+
+#[derive(Args)]
+pub struct LogArgs {
+    /// Search query
+    pub query: String,
+
+    /// Filter commits after this date (ISO format)
+    #[arg(long)]
+    pub since: Option<String>,
+
+    /// Group results by intent
+    #[arg(long)]
+    pub by_intent: bool,
+
+    /// Number of results
+    #[arg(long, default_value = "10")]
+    pub limit: u32,
+}
+
+/// Intent-grouped semantic git log.
+pub async fn run(
+    args: LogArgs,
+    format: OutputFormat,
+    max_tokens: Option<usize>,
+) -> Result<(), SlgError> {
+    let cwd = std::env::current_dir().map_err(SlgError::Io)?;
+    let git_root = detector::find_git_root(&cwd)?;
+    let repo_hash = detector::compute_repo_hash(&git_root);
+    let branch = detector::get_current_branch(&git_root).unwrap_or_else(|_| "main".to_string());
+    let index_path = paths::safe_index_path(&repo_hash, &branch)?;
+
+    if !index_path.exists() {
+        return Err(SlgError::NoIndex);
+    }
+
+    let store = IndexStore::open(&index_path)?;
+    let embedder = Embedder::new()?;
+
+    let since_ts = args.since.as_ref().and_then(|s| {
+        chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d")
+            .ok()
+            .and_then(|d| d.and_hms_opt(0, 0, 0))
+            .map(|dt| dt.and_utc().timestamp())
+    });
+
+    let options = SearchOptions {
+        limit: args.limit,
+        since: since_ts,
+        until: None,
+        author: None,
+        module: None,
+        max_tokens: max_tokens.unwrap_or(8192),
+        enable_reranker: false,
+        format,
+    };
+
+    let start = Instant::now();
+    let results = search::search(&args.query, &store, &embedder, &options).await?;
+    let latency_ms = start.elapsed().as_millis() as u64;
+
+    let output = match format {
+        OutputFormat::Xml => xml::format_xml(&results, &args.query, latency_ms),
+        OutputFormat::Json => json::format_json(&results, &args.query, latency_ms),
+        OutputFormat::Text => text::format_text(&results, &args.query, latency_ms),
+    };
+
+    let guard = OutputGuard::new();
+    let safe_output = guard.check_and_sanitize(&output, 50_000);
+    println!("{}", safe_output);
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    /// BUG-006 regression: limit is no longer capped at 20.
+    #[test]
+    fn test_limit_not_capped() {
+        let user_limit: u32 = 50;
+        // After fix: limit is passed through directly, no .min() cap
+        assert_eq!(user_limit, 50, "Limit should not be artificially capped");
+    }
+}

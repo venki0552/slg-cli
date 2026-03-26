@@ -1,6 +1,6 @@
 # Architecture
 
-lore is a single Rust binary plus a VS Code extension that turns git history into a queryable semantic knowledge base. This document covers the crate structure, data model, storage schema, and the hybrid search pipeline.
+slg is a single Rust binary plus a VS Code extension that turns git history into a queryable semantic knowledge base. This document covers the crate structure, data model, storage schema, and the hybrid search pipeline.
 
 ---
 
@@ -26,7 +26,7 @@ lore is a single Rust binary plus a VS Code extension that turns git history int
 
 ## Design Philosophy
 
-- **Read-only** — lore never modifies the git repository. It only reads git objects and writes to its own `~/.lore/` directory.
+- **Read-only** — slg never modifies the git repository. It only reads git objects and writes to its own `~/.slg/` directory.
 - **Local-first** — no data leaves the machine. All models are embedded (no API calls required).
 - **Token-efficient** — the search pipeline is designed to return the minimal set of tokens that answer a question, not full file contents.
 - **Secure by default** — secrets are redacted before indexing; agent output is CDATA-isolated; all directories are owner-only.
@@ -36,32 +36,32 @@ lore is a single Rust binary plus a VS Code extension that turns git history int
 ## Crate Dependency Graph
 
 ```
-lore-cli  (binary entry point, CLI parsing)
-  ├── lore-core    (shared types, config, errors)
-  ├── lore-git     (git history extraction via git2)
-  ├── lore-index   (embedding, BM25, SQLite store, search pipeline)
-  ├── lore-output  (text / XML / JSON formatters)
-  ├── lore-security (secret redaction, path safety)
-  └── lore-mcp     (JSON-RPC 2.0 stdio server)
+slg  (binary entry point, CLI parsing)
+  ├── slg-core    (shared types, config, errors)
+  ├── slg-git     (git history extraction via git2)
+  ├── slg-index   (embedding, BM25, SQLite store, search pipeline)
+  ├── slg-output  (text / XML / JSON formatters)
+  ├── slg-security (secret redaction, path safety)
+  └── slg-mcp     (JSON-RPC 2.0 stdio server)
 
-lore-mcp
-  └── lore-index   (direct store access for tool calls)
+slg-mcp
+  └── slg-index   (direct store access for tool calls)
 
-lore-index
-  ├── lore-core
-  └── lore-security  (redacts before storing)
+slg-index
+  ├── slg-core
+  └── slg-security  (redacts before storing)
 
-lore-output
-  └── lore-core
+slg-output
+  └── slg-core
 
-lore-git
-  └── lore-core
+slg-git
+  └── slg-core
 
-lore-security
-  └── lore-core
+slg-security
+  └── slg-core
 ```
 
-**`lore-core` has no internal dependencies** — it only uses external crates. All other crates depend on `lore-core`.
+**`slg-core` has no internal dependencies** — it only uses external crates. All other crates depend on `slg-core`.
 
 ---
 
@@ -69,13 +69,13 @@ lore-security
 
 | Crate           | Responsibility                                                                                         |
 | --------------- | ------------------------------------------------------------------------------------------------------ |
-| `lore-core`     | Shared `CommitDoc`, `CommitIntent`, `SearchResult`, `LoreConfig`, `LoreError`, `OutputFormat`          |
-| `lore-security` | `SecretRedactor` (14 patterns), `safe_index_path` (path traversal prevention)                          |
-| `lore-git`      | Reads git history via `git2`; extracts diffs, file lists, linked issues/PRs                            |
-| `lore-index`    | `IndexStore` (SQLite WAL), `Embedder` (all-MiniLM-L6-v2), `BM25Index`, `search()` pipeline, `Reranker` |
-| `lore-output`   | `format_text`, `format_xml`, `format_json` for `SearchResult` slices                                   |
-| `lore-mcp`      | JSON-RPC 2.0 `stdio` server, 5 tool handlers, rate limiter, auto-init detection                        |
-| `lore-cli`      | `clap` command definitions; thin wrappers calling the other crates; git hooks; shell completions       |
+| `slg-core`     | Shared `CommitDoc`, `CommitIntent`, `SearchResult`, `SlgConfig`, `SlgError`, `OutputFormat`          |
+| `slg-security` | `SecretRedactor` (14 patterns), `safe_index_path` (path traversal prevention)                          |
+| `slg-git`      | Reads git history via `git2`; extracts diffs, file lists, linked issues/PRs                            |
+| `slg-index`    | `IndexStore` (SQLite WAL), `Embedder` (all-MiniLM-L6-v2), `BM25Index`, `search()` pipeline, `Reranker` |
+| `slg-output`   | `format_text`, `format_xml`, `format_json` for `SearchResult` slices                                   |
+| `slg-mcp`      | JSON-RPC 2.0 `stdio` server, 5 tool handlers, rate limiter, auto-init detection                        |
+| `slg`      | `clap` command definitions; thin wrappers calling the other crates; git hooks; shell completions       |
 
 ---
 
@@ -116,7 +116,7 @@ Detected from the conventional commit prefix (`fix:`, `feat:`, `refactor:`, etc.
 Each `(repo, branch)` pair gets its own SQLite database at:
 
 ```
-~/.lore/indices/<repo_sha256_hash>/<branch_name>.db
+~/.slg/indices/<repo_sha256_hash>/<branch_name>.db
 ```
 
 SQLite is opened in **WAL (Write-Ahead Log)** mode for concurrent reads. Tables:
@@ -192,7 +192,7 @@ Query string
 
 - Model: **all-MiniLM-L6-v2** (384 dimensions, ~23 MB)
 - Runtime: ONNX via `ort` crate (CPU inference, no GPU required)
-- Stored at: `~/.lore/models/all-MiniLM-L6-v2.onnx`
+- Stored at: `~/.slg/models/all-MiniLM-L6-v2.onnx`
 - Similarity: cosine similarity stored as inner product (vectors are L2-normalised at index time)
 
 ### 2. BM25 (Sparse Retrieval)
@@ -248,7 +248,7 @@ git log (via git2)
 Extract: hash, message, body, author, timestamp, diff, files
     │
     ▼
-lore-security: SecretRedactor.redact(diff_summary)
+slg-security: SecretRedactor.redact(diff_summary)
     │
     ▼
 Detect: CommitIntent, risk_score, injection_flagged
@@ -260,18 +260,18 @@ Detect: CommitIntent, risk_score, injection_flagged
     └──► IndexStore.store_commit(doc, embedding) → commits + commit_embeddings rows
 ```
 
-The indexer is idempotent — `store_commit` is a no-op if the hash already exists. This makes `lore reindex` safe to run repeatedly.
+The indexer is idempotent — `store_commit` is a no-op if the hash already exists. This makes `slg reindex` safe to run repeatedly.
 
 ---
 
 ## Git Hook Integration
 
-`lore init` installs a `post-commit` git hook:
+`slg init` installs a `post-commit` git hook:
 
 ```sh
 #!/bin/sh
 HASH=$(git rev-parse HEAD)
-lore _index-commit "$HASH" &
+slg _index-commit "$HASH" &
 ```
 
-The hook runs `lore _index-commit` in the background so it never blocks the commit. `lore reindex` (delta-only, fast path) can also be triggered manually or from the VS Code extension on branch switch.
+The hook runs `slg _index-commit` in the background so it never blocks the commit. `slg reindex` (delta-only, fast path) can also be triggered manually or from the VS Code extension on branch switch.

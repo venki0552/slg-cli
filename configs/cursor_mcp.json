@@ -1,7 +1,7 @@
 {
   "mcpServers": {
-    "lore": {
-      "command": "lore",
+    "slg": {
+      "command": "slg",
       "args": ["mcp", "start"]
     }
   }

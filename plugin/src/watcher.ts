@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { exec, execSync } from 'child_process';
-import { LoreStatusBar } from './statusbar';
+import { SlgStatusBar } from './statusbar';
 
 function getCurrentBranch(workspaceRoot: string): string | undefined {
   try {
@@ -16,14 +16,14 @@ function getCurrentBranch(workspaceRoot: string): string | undefined {
 function execBackground(command: string, cwd: string): void {
   exec(command, { cwd }, (error) => {
     if (error) {
-      console.error(`lore background exec failed: ${error.message}`);
+      console.error(`slg background exec failed: ${error.message}`);
     }
   });
 }
 
 function pollIndexStatus(
   binaryPath: string,
-  statusBar: LoreStatusBar,
+  statusBar: SlgStatusBar,
   workspaceRoot: string
 ): void {
   const interval = setInterval(() => {
@@ -58,7 +58,7 @@ function pollIndexStatus(
 export function installWatchers(
   binaryPath: string,
   workspaceRoot: string | undefined,
-  statusBar: LoreStatusBar
+  statusBar: SlgStatusBar
 ): vscode.Disposable[] {
   const disposables: vscode.Disposable[] = [];
 

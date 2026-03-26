@@ -2,8 +2,8 @@
 layout: home
 
 hero:
-  name: lore
-  text: Semantic git intelligence
+  name: slg
+  text: Semantic Lore for Git
   tagline: Transform your git history into a queryable knowledge base. Serve ground truth to AI agents in &lt;200ms — fully local, fully offline.
   actions:
     - theme: brand
@@ -14,7 +14,7 @@ hero:
       link: /docs/commands
     - theme: alt
       text: GitHub
-      link: https://github.com/venki0552/lore-cli
+      link: https://github.com/venki0552/slg
 
 features:
   - icon: ⚡
@@ -25,7 +25,7 @@ features:
     details: 5 read-only tools for Claude Code, Cursor, Windsurf, and GitHub Copilot. Auto-registers on VS Code activation.
   - icon: 🔒
     title: Fully local & secure
-    details: All data lives in ~/.lore/. Secrets redacted before indexing. CDATA-isolated output. No cloud. No data egress.
+    details: All data lives in ~/.slg/. Secrets redacted before indexing. CDATA-isolated output. No cloud. No data egress.
   - icon: 🔍
     title: Hybrid search
     details: Vector similarity + BM25 lexical ranking fused with Reciprocal Rank Fusion. Recency, exact-match, and security boosts.
@@ -41,10 +41,10 @@ features:
 
 ```bash
 # one-time setup
-lore init
+slg init
 
 # ask your repo anything
-lore why "why was the retry limit set to 3?"
+slg why "why was the retry limit set to 3?"
 ```
 
 </div>

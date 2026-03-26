@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { execSync } from 'child_process';
 
-/// Run lore doctor and show results in an output channel
+/// Run slg doctor and show results in an output channel
 export function runDoctor(binaryPath: string): void {
-  const outputChannel = vscode.window.createOutputChannel('lore doctor');
+  const outputChannel = vscode.window.createOutputChannel('slg doctor');
   outputChannel.clear();
   outputChannel.show();
 
@@ -21,7 +21,7 @@ export function runDoctor(binaryPath: string): void {
       // execSync throws on non-zero exit, but stdout still has output
       outputChannel.appendLine((error as { stdout: Buffer }).stdout.toString());
     } else {
-      outputChannel.appendLine(`Failed to run lore doctor: ${error}`);
+      outputChannel.appendLine(`Failed to run slg doctor: ${error}`);
     }
   }
 }

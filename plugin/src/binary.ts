@@ -5,14 +5,14 @@ import * as crypto from 'crypto';
 import { execSync } from 'child_process';
 
 const EXPECTED_VERSION = '0.1.0';
-const GITHUB_RELEASE_BASE = 'https://github.com/venki0552/lore-cli/releases/download';
+const GITHUB_RELEASE_BASE = 'https://github.com/venki0552/slg-cli/releases/download';
 
 const BINARY_MAP: Record<string, string> = {
-  'linux-x64': 'lore-linux-x86_64',
-  'linux-arm64': 'lore-linux-aarch64',
-  'darwin-arm64': 'lore-darwin-arm64',
-  'darwin-x64': 'lore-darwin-x86_64',
-  'win32-x64': 'lore-windows-x86_64.exe',
+  'linux-x64': 'slg-linux-x86_64',
+  'linux-arm64': 'slg-linux-aarch64',
+  'darwin-arm64': 'slg-darwin-arm64',
+  'darwin-x64': 'slg-darwin-x86_64',
+  'win32-x64': 'slg-windows-x86_64.exe',
 };
 
 async function downloadFile(url: string, dest: string): Promise<void> {
@@ -81,15 +81,15 @@ async function verifyChecksum(binaryPath: string, checksumPath: string): Promise
   return actualHash === expectedHash;
 }
 
-/// Download and verify the lore binary for the current platform
-export async function ensureLoreBinary(ctx: vscode.ExtensionContext): Promise<string | null> {
+/// Download and verify the slg binary for the current platform
+export async function ensureSlgBinary(ctx: vscode.ExtensionContext): Promise<string | null> {
   const storagePath = ctx.globalStorageUri.fsPath;
   const platformKey = `${process.platform}-${process.arch}`;
   const binaryName = BINARY_MAP[platformKey];
 
   if (!binaryName) {
     vscode.window.showErrorMessage(
-      `lore: unsupported platform ${process.platform}-${process.arch}`
+      `slg: unsupported platform ${process.platform}-${process.arch}`
     );
     return null;
   }
@@ -113,11 +113,11 @@ export async function ensureLoreBinary(ctx: vscode.ExtensionContext): Promise<st
   return await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: 'lore: setting up for first time...',
+      title: 'slg: setting up for first time...',
       cancellable: false,
     },
     async (progress) => {
-      progress.report({ message: `Downloading lore binary for ${platformKey}...` });
+      progress.report({ message: `Downloading slg binary for ${platformKey}...` });
 
       const url = `${GITHUB_RELEASE_BASE}/v${EXPECTED_VERSION}/${binaryName}`;
       await downloadFile(url, binaryPath);
@@ -134,10 +134,10 @@ export async function ensureLoreBinary(ctx: vscode.ExtensionContext): Promise<st
       // SECURITY: Always verify checksum — never trust a download without verification
       if (!(await verifyChecksum(binaryPath, checksumPath))) {
         fs.unlinkSync(binaryPath);
-        throw new Error('lore binary checksum verification failed');
+        throw new Error('slg binary checksum verification failed');
       }
 
-      progress.report({ message: 'Initializing lore...' });
+      progress.report({ message: 'Initializing slg...' });
       execSync(`"${binaryPath}" init --mcp-only --silent`, { timeout: 10000 });
 
       return binaryPath;
