@@ -7,7 +7,7 @@ export default defineConfig({
 		"Semantic git intelligence for LLM agents — transform your git history into a queryable knowledge base.",
 
 	// All .md files are read from the repo root
-	srcExclude: ["lore-architecture.md", "lore-claude-code-prompt.md", "NUL"],
+	srcExclude: ["NUL"],
 
 	head: [
 		["meta", { name: "theme-color", content: "#646cff" }],
