@@ -30,7 +30,7 @@
 | Transport      | `stdio` (stdin → stdout, stderr for logs) |
 | Protocol       | JSON-RPC 2.0                              |
 | MCP Version    | `2024-11-05`                              |
-| Server Name    | `slg`                                    |
+| Server Name    | `slg`                                     |
 | Server Version | `0.1.0`                                   |
 | Capability     | `tools` (read-only, no writes)            |
 
@@ -56,7 +56,7 @@ The server reads from `stdin` and writes to `stdout`, one JSON-RPC message per l
 | -------------------- | -------------------------------------------------------- |
 | Rate limit           | 60 requests / minute (token bucket, refills 1 token/sec) |
 | Response size        | 50 KB max (`mcp_output_max_bytes`, configurable)         |
-| Tool call timeout    | 5 seconds (`mcp_timeout_secs`, configurable)             |
+| Tool call timeout    | 15 seconds (`mcp_timeout_secs`, configurable)            |
 | Max results per tool | 10                                                       |
 | Max query length     | 500 characters                                           |
 
@@ -262,11 +262,12 @@ Get current slg index status — whether it is indexed, up to date, and how many
 
 The server implements these standard MCP methods:
 
-| Method       | Description                                            |
-| ------------ | ------------------------------------------------------ |
-| `initialize` | Handshake — returns `serverInfo` and `capabilities`    |
-| `tools/list` | Returns the 5 tool definitions with full input schemas |
-| `tools/call` | Invoke a tool by name                                  |
+| Method                      | Description                                            |
+| --------------------------- | ------------------------------------------------------ |
+| `initialize`                | Handshake — returns `serverInfo` and `capabilities`    |
+| `tools/list`                | Returns the 5 tool definitions with full input schemas |
+| `tools/call`                | Invoke a tool by name                                  |
+| `notifications/initialized` | Acknowledged but produces no response (no-op)          |
 
 ### `initialize` example
 

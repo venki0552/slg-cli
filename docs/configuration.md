@@ -38,7 +38,7 @@ slg has two levels of configuration: the `~/.slg/config.toml` file (applies to a
 | ---------------------- | ------- | ------- | ----------------------------------------------------- |
 | `mcp_rate_limit_rpm`   | integer | `60`    | Maximum MCP tool calls per minute (token bucket)      |
 | `mcp_output_max_bytes` | integer | `50000` | Maximum response size per tool call in bytes (~50 KB) |
-| `mcp_timeout_secs`     | integer | `5`     | Per-tool-call timeout in seconds                      |
+| `mcp_timeout_secs`     | integer | `15`    | Per-tool-call timeout in seconds                      |
 
 ### LLM settings (Phase 2)
 
@@ -69,7 +69,7 @@ enable_reranker      = false
 # MCP server
 mcp_rate_limit_rpm   = 60
 mcp_output_max_bytes = 50000
-mcp_timeout_secs     = 5
+mcp_timeout_secs     = 15
 
 # LLM (Phase 2 — optional)
 [llm]

@@ -32,14 +32,15 @@ slg init
 
 **Flags:**
 
-| Flag           | Description                                                                       |
-| -------------- | --------------------------------------------------------------------------------- |
-| `--global`     | Also install shell integration into your shell RC file (zsh/bash/fish/PowerShell) |
-| `--background` | Run the initial indexing in the background, return immediately                    |
-| `--mcp-only`   | Only register MCP configuration; skip hooks and indexing                          |
-| `--hooks-only` | Only install git hooks; skip indexing and MCP                                     |
-| `--shell-only` | Only install shell integration; skip everything else                              |
-| `--silent`     | Suppress all output (used internally by hooks)                                    |
+| Flag           | Description                                                                         |
+| -------------- | ----------------------------------------------------------------------------------- |
+| `--global`     | Also install shell integration into your shell RC file (zsh/bash/fish/PowerShell)   |
+| `--background` | Run the initial indexing in the background, return immediately                      |
+| `--mcp-only`   | Only register MCP configuration; skip hooks and indexing                            |
+| `--hooks-only` | Only install git hooks; skip indexing and MCP                                       |
+| `--shell-only` | Only install shell integration; skip everything else                                |
+| `--fix-all`    | Automatically fix all detected issues (re-install hooks, recreate index if missing) |
+| `--silent`     | Suppress all output (used internally by hooks)                                      |
 
 **Example output:**
 
@@ -51,21 +52,40 @@ Repo hash: a3f19c2d
 ✓ Created /home/user/.slg/
 ✓ Git hooks installed
 
-Indexing branch 'main'...
-⠴ Indexing commits [842]
-✓ Indexed 842 commits
+Indexing branch 'main' at /home/user/myproject
+  [embed] Model loaded in 338ms
+  Indexed 842 commits [842]
 
-Index path: /home/user/.slg/indices/a3f19c2d/main.db
+  ┌──────────────────────────────────────────┐
+  │          Indexing Analytics               │
+  ├──────────────────────────────────────────┤
+  │  Total time:          65.2s              │
+  │  Commits ingested:      842               │
+  │  Commits skipped:         0               │
+  │  Commits embedded:      842               │
+  │  Commits stored:        842               │
+  ├──────────────────────────────────────────┤
+  │  Embedding time:       57.1s (87.6%)     │
+  │  DB write time:         0.7s ( 1.1%)     │
+  │  BM25 index time:      42.3s (64.9%)     │
+  │  Pipeline overhead:    -34.9s             │
+  ├──────────────────────────────────────────┤
+  │  Embed throughput:     14.7 commits/s     │
+  │  Overall rate:         12.9 commits/s     │
+  │  Avg embed/commit:     67.8ms             │
+  │  Avg write/commit:      0.8ms             │
+  │  Avg BM25/commit:      50.2ms             │
+  └──────────────────────────────────────────┘
+
+Index stored at: /home/user/.slg/indices/a3f19c2d.../main.db
 → Run `slg why "your question"` to search git history
 ```
 
+The **pipeline overhead** line is negative because the 3 stages (git ingestion, ONNX embedding, DB write) run concurrently as a streaming pipeline — embedding and BM25 indexing overlap in real time, so their measured times sum to more than wall-clock elapsed.
+
 **After `slg init`, future commits are indexed automatically** via the installed git hooks. You do not need to run `slg index` again unless you want to force a full re-index.
 
----
-
-## `slg index`
-
-Explicitly run a full index of the current branch. Walks all commits through libgit2, sanitizes, embeds, and stores them. Use this if you want to force a complete re-index.
+Explicitly run a full index of the current branch. Walks all commits through libgit2, sanitizes, embeds, and stores them. Use this if you want to force a complete re-index. Prints the same analytics table as `slg init` when complete.
 
 ```bash
 slg index
@@ -80,6 +100,8 @@ slg index --background
 | `--silent`     | Suppress progress output                       |
 
 **When to use:** After resetting the index, switching to a new machine, or if `slg doctor` reports index issues.
+
+> **Detached HEAD:** If the repo is in detached HEAD state, the branch name used for the index is `HEAD-DETACHED-{short_hash}`. Indexing proceeds normally but the index won't be shared with a named branch.
 
 ---
 
@@ -384,8 +406,8 @@ slg doctor --fix-all
 | Check            | What it verifies                                                             |
 | ---------------- | ---------------------------------------------------------------------------- |
 | Binary version   | Current installed version                                                    |
-| slg home        | `~/.slg/` directory exists                                                  |
-| Models directory | `~/.slg/models/` exists (embedding model downloaded)                        |
+| slg home         | `~/.slg/` directory exists                                                   |
+| Models directory | `~/.slg/models/` exists (embedding model downloaded)                         |
 | Git repository   | Current directory is inside a git repo                                       |
 | Git hooks        | `post-commit`, `post-checkout`, `post-merge`, `post-rewrite` hooks installed |
 | Index            | Index file exists for current branch                                         |
@@ -424,7 +446,7 @@ These commands have no user-facing flags. They are invoked by your agent's MCP c
 
 - Rate limit: 60 requests per minute (per process)
 - Max output per response: 50,000 bytes
-- Request timeout: 5 seconds
+- Request timeout: 15 seconds
 
 ---
 
@@ -457,8 +479,8 @@ slg sync --silent
 
 These commands are used by git hooks and the VS Code extension. They are hidden from `slg --help` and not intended for direct use.
 
-| Command                     | Description                                                       |
-| --------------------------- | ----------------------------------------------------------------- |
+| Command                    | Description                                                       |
+| -------------------------- | ----------------------------------------------------------------- |
 | `slg _health`              | Machine-readable health check (JSON). Used by VS Code status bar. |
 | `slg _repo-hash`           | Print stable repo hash for current directory.                     |
 | `slg _index-commit <hash>` | Index a single commit by SHA. Called by `post-commit` hook.       |

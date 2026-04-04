@@ -122,10 +122,32 @@ slg init
 `slg init` does three things:
 
 1. **Downloads the embedding model** — `all-MiniLM-L6-v2` (~90 MB) is saved to `~/.slg/models/` and cached for all repos. This only happens once.
-2. **Indexes your git history** — walks every commit on the current branch, redacts secrets, embeds each commit, and stores the index at `~/.slg/indices/<repo-hash>/`.
-3. **Installs git hooks** — a `post-commit` hook keeps the index up to date automatically as you commit.
+2. **Indexes your git history** — uses a 3-stage concurrent pipeline (git ingestion → ONNX embedding → SQLite write) that runs all stages in parallel for maximum throughput.
+3. **Installs git hooks** — `post-commit`, `post-checkout`, `post-merge`, and `post-rewrite` hooks keep the index up to date automatically.
 
-For large repos (10 000+ commits) the initial index can take a minute or two. Run it in the background while you work:
+When indexing completes, slg prints an analytics summary showing how long each stage took:
+
+```
+  ┌──────────────────────────────────────────┐
+  │          Indexing Analytics               │
+  ├──────────────────────────────────────────┤
+  │  Total time:          65.2s              │
+  │  Commits ingested:      842               │
+  │  Commits skipped:         0               │
+  │  Commits embedded:      842               │
+  │  Commits stored:        842               │
+  ├──────────────────────────────────────────┤
+  │  Embedding time:       57.1s (87.6%)     │
+  │  DB write time:         0.7s ( 1.1%)     │
+  │  BM25 index time:      42.3s (64.9%)     │
+  │  Pipeline overhead:    -34.9s             │
+  ├──────────────────────────────────────────┤
+  │  Embed throughput:     14.7 commits/s     │
+  │  Overall rate:         12.9 commits/s     │
+  └──────────────────────────────────────────┘
+```
+
+For large repos (10 000+ commits) the initial index takes several minutes. Run it in the background while you work:
 
 ```bash
 slg init --background

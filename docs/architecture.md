@@ -20,7 +20,10 @@ slg is a single Rust binary plus a VS Code extension that turns git history into
   - [6. Token Budget](#6-token-budget)
   - [7. Optional Re-ranking](#7-optional-re-ranking)
 - [Indexing Pipeline](#indexing-pipeline)
+  - [SQLite Performance Configuration](#sqlite-performance-configuration)
+- [MCP Auto-Init](#mcp-auto-init)
 - [Git Hook Integration](#git-hook-integration)
+  - [Shell Auto-Index](#shell-auto-index)
 
 ---
 
@@ -67,15 +70,15 @@ slg-security
 
 ## Crate Summaries
 
-| Crate           | Responsibility                                                                                         |
-| --------------- | ------------------------------------------------------------------------------------------------------ |
-| `slg-core`     | Shared `CommitDoc`, `CommitIntent`, `SearchResult`, `SlgConfig`, `SlgError`, `OutputFormat`          |
-| `slg-security` | `SecretRedactor` (14 patterns), `safe_index_path` (path traversal prevention)                          |
-| `slg-git`      | Reads git history via `git2`; extracts diffs, file lists, linked issues/PRs                            |
-| `slg-index`    | `IndexStore` (SQLite WAL), `Embedder` (all-MiniLM-L6-v2), `BM25Index`, `search()` pipeline, `Reranker` |
-| `slg-output`   | `format_text`, `format_xml`, `format_json` for `SearchResult` slices                                   |
-| `slg-mcp`      | JSON-RPC 2.0 `stdio` server, 5 tool handlers, rate limiter, auto-init detection                        |
-| `slg`      | `clap` command definitions; thin wrappers calling the other crates; git hooks; shell completions       |
+| Crate          | Responsibility                                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| `slg-core`     | Shared `CommitDoc`, `CommitIntent`, `SearchResult`, `SlgConfig`, `SlgError`, `OutputFormat`                   |
+| `slg-security` | `SecretRedactor` (14 patterns), `safe_index_path` (path traversal prevention)                                 |
+| `slg-git`      | Reads git history via `git2`; extracts diffs, file lists, linked issues/PRs                                   |
+| `slg-index`    | `IndexStore` (SQLite WAL), `Embedder` (all-MiniLM-L6-v2), `BM25Index`, `search()` pipeline, `Reranker`        |
+| `slg-output`   | `format_text`, `format_xml`, `format_json` for `SearchResult` slices                                          |
+| `slg-mcp`      | JSON-RPC 2.0 `stdio` server, 5 tool handlers, rate limiter, MCP auto-init (background indexing on first call) |
+| `slg`          | `clap` command definitions; thin wrappers calling the other crates; git hooks; shell completions              |
 
 ---
 
@@ -83,25 +86,25 @@ slg-security
 
 Every indexed commit is stored as a `CommitDoc` struct:
 
-| Field               | Type             | Description                                                                       |
-| ------------------- | ---------------- | --------------------------------------------------------------------------------- |
-| `hash`              | `String`         | Full 40-char SHA-1                                                                |
-| `short_hash`        | `String`         | 7-char display hash                                                               |
-| `message`           | `String`         | Sanitized commit subject line                                                     |
-| `body`              | `Option<String>` | Sanitized full message body (if present)                                          |
-| `diff_summary`      | `String`         | Per-file intent summaries after secret redaction — raw diffs are **never** stored |
-| `author`            | `String`         | Display name only — email is **never** stored                                     |
-| `timestamp`         | `i64`            | Unix epoch seconds                                                                |
-| `files_changed`     | `Vec<String>`    | File paths touched                                                                |
-| `insertions`        | `u32`            | Lines added                                                                       |
-| `deletions`         | `u32`            | Lines removed                                                                     |
-| `linked_issues`     | `Vec<String>`    | Parsed from "fixes #234", "closes #45"                                            |
-| `linked_prs`        | `Vec<String>`    | Parsed from "PR #123"                                                             |
-| `intent`            | `CommitIntent`   | Detected from conventional commit prefix + diff                                   |
-| `risk_score`        | `f32`            | 0.0–1.0; computed from file sensitivity + churn + deletion ratio                  |
-| `branch`            | `String`         | Branch the commit was indexed from                                                |
-| `injection_flagged` | `bool`           | LLM steering pattern detected in commit text                                      |
-| `secrets_redacted`  | `u32`            | Count of redacted secret patterns (not the values)                                |
+| Field               | Type             | Description                                                                         |
+| ------------------- | ---------------- | ----------------------------------------------------------------------------------- |
+| `hash`              | `String`         | Full 40-char SHA-1                                                                  |
+| `short_hash`        | `String`         | 7-char display hash                                                                 |
+| `message`           | `String`         | Sanitized commit subject line                                                       |
+| `body`              | `Option<String>` | Sanitized full message body (if present)                                            |
+| `diff_summary`      | `String`         | Per-file intent summaries after secret redaction — raw diffs are **never** stored   |
+| `author`            | `String`         | Display name only — email is **never** stored                                       |
+| `timestamp`         | `i64`            | Unix epoch seconds                                                                  |
+| `files_changed`     | `Vec<String>`    | File paths touched                                                                  |
+| `insertions`        | `u32`            | Lines added                                                                         |
+| `deletions`         | `u32`            | Lines removed                                                                       |
+| `linked_issues`     | `Vec<String>`    | Parsed from "fixes #234", "closes #45"                                              |
+| `linked_prs`        | `Vec<String>`    | Parsed from "PR #123"                                                               |
+| `intent`            | `CommitIntent`   | Detected from conventional commit prefix + diff                                     |
+| `risk_score`        | `f32`            | 0.0–1.0; computed from file sensitivity + churn + deletion ratio                    |
+| `branch`            | `String`         | Branch the commit was indexed from. For detached HEAD: `HEAD-DETACHED-{short_hash}` |
+| `injection_flagged` | `bool`           | LLM steering pattern detected in commit text                                        |
+| `secrets_redacted`  | `u32`            | Count of redacted secret patterns (not the values)                                  |
 
 ### CommitIntent variants
 
@@ -118,6 +121,13 @@ Each `(repo, branch)` pair gets its own SQLite database at:
 ```
 ~/.slg/indices/<repo_sha256_hash>/<branch_name>.db
 ```
+
+**`repo_sha256_hash`** is computed as:
+
+- `SHA256(remote origin URL)` if the repo has an `origin` remote — stable across machines that share the same remote.
+- `SHA256(absolute local path)` if there is no remote — unique per machine.
+
+**`branch_name`** is sanitized before use as a filename (character allowlist, 64-char cap, path traversal checks). See [Path Security](security.md#path-security) for the full rules.
 
 SQLite is opened in **WAL (Write-Ahead Log)** mode for concurrent reads. Tables:
 
@@ -193,7 +203,7 @@ Query string
 - Model: **all-MiniLM-L6-v2** (384 dimensions, ~23 MB)
 - Runtime: ONNX via `ort` crate (CPU inference, no GPU required)
 - Stored at: `~/.slg/models/all-MiniLM-L6-v2.onnx`
-- Similarity: cosine similarity stored as inner product (vectors are L2-normalised at index time)
+- Similarity: cosine similarity computed at query time; the query norm is pre-computed once and reused across all candidates (`cosine_similarity_prenorm`)
 
 ### 2. BM25 (Sparse Retrieval)
 
@@ -241,37 +251,107 @@ When `enable_reranker = true` in config (or `--rerank` flag), a cross-encoder mo
 
 ## Indexing Pipeline
 
+`slg init` and `slg index` run a **3-stage concurrent streaming pipeline** — the three stages overlap in real time so git I/O, ONNX inference, and SQLite writes all proceed simultaneously:
+
 ```
-git log (via git2)
-    │  for each commit
-    ▼
-Extract: hash, message, body, author, timestamp, diff, files
-    │
-    ▼
-slg-security: SecretRedactor.redact(diff_summary)
-    │
-    ▼
-Detect: CommitIntent, risk_score, injection_flagged
-    │
-    ├──► Embedder.embed_text(message + body + diff_summary) → 384-dim vector
-    │
-    ├──► BM25Index.index_commit(doc) → bm25_terms, bm25_doc_freq rows
-    │
-    └──► IndexStore.store_commit(doc, embedding) → commits + commit_embeddings rows
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Indexing Pipeline (streaming)                     │
+│                                                                      │
+│  Stage 1: Git Ingestion           chan(512)                          │
+│  ─────────────────────────────── ══════════ ──────────────────────  │
+│  git2::revwalk → raw commits                                         │
+│  SecretRedactor.redact()          → CommitDoc → ...                 │
+│  CommitSanitizer.sanitize()                                          │
+│  detect intent, risk_score                                           │
+│                                                                      │
+│  Stage 2: Embedder (single ONNX)  chan(32)                           │
+│  ─────────────────────────────── ══════════ ──────────────────────  │
+│  filter already-indexed (commit_exists)                              │
+│  batch=256 → Embedder.embed_batch()    → (docs, embeddings) → ...   │
+│  ort ONNX session, CPU inference                                     │
+│                                                                      │
+│  Stage 3: DB Writer                                                  │
+│  ─────────────────────────────────────────────────────────────────  │
+│  IndexStore.store_batch()                                            │
+│  BM25Index.index_commit()                                            │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-The indexer is idempotent — `store_commit` is a no-op if the hash already exists. This makes `slg reindex` safe to run repeatedly.
+Key properties:
+
+- **Single ONNX session** — multiple sessions cause CPU contention; one session with large batches maximises SIMD throughput.
+- **Batch size 256** — text is truncated to 400 chars for diffs and 800 chars total before embedding to fit the model's 256-token window.
+- **INSERT OR IGNORE** — `store_batch` uses `INSERT OR IGNORE` instead of a prior `SELECT` existence check, making batch writes idempotent and faster.
+- **pipeline overhead is negative** in the analytics output because the three stages run concurrently — embedding and BM25 wall-clock time overlap.
+
+### SQLite Performance Configuration
+
+The index store is opened with these PRAGMAs on every connection:
+
+| PRAGMA         | Value       | Effect                                |
+| -------------- | ----------- | ------------------------------------- |
+| `journal_mode` | `WAL`       | Concurrent readers while writing      |
+| `synchronous`  | `NORMAL`    | Safe with WAL; reduces fsync overhead |
+| `cache_size`   | `-64000`    | 64 MB page cache in RAM               |
+| `mmap_size`    | `268435456` | 256 MB memory-mapped I/O              |
+| `temp_store`   | `MEMORY`    | Temporary tables stay in RAM          |
+| `page_size`    | `4096`      | Matches typical OS page size          |
+
+All hot-path SQL statements use `prepare_cached()` from the rusqlite statement cache (capacity 32).
+
+The indexer is idempotent — `store_batch`/`store_commit` use `INSERT OR IGNORE`, so `slg reindex` is always safe to run repeatedly.
+
+---
+
+## MCP Auto-Init
+
+When an AI agent makes its first tool call and no index exists yet, the MCP server **automatically starts background indexing** without requiring the user to run `slg init` first:
+
+```
+Agent tool call (slg_why, slg_blame, etc.)
+    │
+    ▼
+index_exists()? ──No──► spawn_background_index() (INIT_ONCE guard)
+    │                         │
+    │                         ▼
+    │                    3-stage streaming pipeline
+    │                    AtomicU64 progress counter
+    │
+    ▼
+Return: {"status":"initializing","message":"slg index is being built..."}
+    │
+    ▼ (agent retries later)
+index_exists()? ──Yes──► normal tool call
+```
+
+- `std::sync::Once` guarantees background indexing starts exactly once per process.
+- `AtomicBool` + `AtomicU64` counters track progress without locking.
+- The initializing response tells the agent to retry — it includes an `eta_seconds` hint.
 
 ---
 
 ## Git Hook Integration
 
-`slg init` installs a `post-commit` git hook:
+`slg init` installs four git hooks — `post-commit`, `post-checkout`, `post-merge`, and `post-rewrite`. Each runs:
 
 ```sh
-#!/bin/sh
-HASH=$(git rev-parse HEAD)
-slg _index-commit "$HASH" &
+# slg semantic index hook — slg.sh — DO NOT EDIT THIS BLOCK
+slg reindex --delta-only --background --silent 2>/dev/null &
+# end slg hook
 ```
 
-The hook runs `slg _index-commit` in the background so it never blocks the commit. `slg reindex` (delta-only, fast path) can also be triggered manually or from the VS Code extension on branch switch.
+- The hook block is **appended** to any existing hook rather than overwriting it.
+- If a hook file already contains a slg block, it is updated in-place (idempotent).
+- The `&` detaches the process so the hook never blocks the git operation.
+- `slg reindex --delta-only` uses `git2` merge-base walk to find only commits not yet in the index, making it fast even on large repos.
+
+### Shell Auto-Index
+
+`slg init --global` also installs a shell integration function. When you `cd` into a git repo that has no index file, it automatically starts `slg index --background --silent`:
+
+| Shell      | Mechanism                                      |
+| ---------- | ---------------------------------------------- |
+| Zsh        | `add-zsh-hook chpwd _slg_chpwd`                |
+| Bash       | `PROMPT_COMMAND="_slg_chpwd; $PROMPT_COMMAND"` |
+| Fish       | `function _slg_chpwd --on-variable PWD`        |
+| PowerShell | Not yet supported — run `slg index` manually   |
