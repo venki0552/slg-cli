@@ -500,7 +500,7 @@ impl IndexStore {
 
 /// Convert f32 embedding to bytes for blob storage (zero-copy safe cast).
 fn embedding_to_bytes(embedding: &[f32]) -> Vec<u8> {
-    let byte_len = embedding.len() * std::mem::size_of::<f32>();
+    let byte_len = std::mem::size_of_val(embedding);
     let mut bytes = Vec::with_capacity(byte_len);
     for &f in embedding {
         bytes.extend_from_slice(&f.to_le_bytes());
