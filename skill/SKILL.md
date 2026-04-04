@@ -1,5 +1,5 @@
 ---
-name: slg
+name: venki0552-slg
 description: Semantic git history search and code archaeology. Use when asked why code exists, who owns a file, what introduced a regression, what changed in a commit range, or whether a change is risky to revert.
 version: 1.0.0
 metadata:
