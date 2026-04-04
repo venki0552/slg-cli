@@ -2643,7 +2643,7 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
 name = "slg-cli"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2667,7 +2667,7 @@ dependencies = [
 
 [[package]]
 name = "slg-core"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2680,7 +2680,7 @@ dependencies = [
 
 [[package]]
 name = "slg-git"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2699,7 +2699,7 @@ dependencies = [
 
 [[package]]
 name = "slg-index"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2716,7 +2716,7 @@ dependencies = [
 
 [[package]]
 name = "slg-mcp"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2733,7 +2733,7 @@ dependencies = [
 
 [[package]]
 name = "slg-output"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2746,7 +2746,7 @@ dependencies = [
 
 [[package]]
 name = "slg-security"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "chrono",

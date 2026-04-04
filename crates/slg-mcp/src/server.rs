@@ -16,7 +16,7 @@ use crate::rate_limiter::RateLimiter;
 use crate::tools;
 
 const MAX_OUTPUT_BYTES: usize = 50_000;
-const TIMEOUT_SECS: u64 = 5;
+const TIMEOUT_SECS: u64 = 15;
 
 /// Run the MCP server over stdio (JSON-RPC 2.0, line-delimited).
 pub async fn run_mcp_server() -> Result<(), SlgError> {
@@ -140,14 +140,27 @@ async fn handle_tool_call(tool_name: &str, params: &Value) -> Result<Value, SlgE
     let index_path = paths::safe_index_path(&repo_hash, &branch)?;
 
     if !index_path.exists() {
-        // Auto-init hint
+        // Auto-trigger background indexing on first tool call
+        if !crate::auto_init::is_indexing() && !crate::auto_init::indexing_finished() {
+            crate::auto_init::spawn_background_index(
+                git_root.clone(),
+                repo_hash.clone(),
+                branch.clone(),
+            );
+        }
+
+        // If indexing is in progress or was just spawned, return progress
         if crate::auto_init::is_indexing() {
             return Ok(crate::auto_init::initializing_response(tool_name));
         }
-        return Ok(json!({
-            "content": [{"type": "text", "text": "Index not found. Run `slg init` first."}],
-            "isError": true
-        }));
+
+        // If indexing finished between the exists-check and now, fall through
+        if !crate::auto_init::indexing_finished() {
+            return Ok(json!({
+                "content": [{"type": "text", "text": "Index not found and auto-init failed. Run `slg init` manually."}],
+                "isError": true
+            }));
+        }
     }
 
     let store = IndexStore::open(&index_path)?;
@@ -403,6 +416,10 @@ mod tests {
             }
         });
         let result = handle_method("tools/call", &req).await.unwrap();
-        assert!(result["isError"].as_bool().unwrap_or(false));
+        // In a git repo without an index, auto-init fires and returns "initializing"
+        // or, outside a git repo, returns isError. Either is acceptable.
+        let is_init = result.get("status").and_then(|s| s.as_str()) == Some("initializing");
+        let is_error = result["isError"].as_bool().unwrap_or(false);
+        assert!(is_init || is_error, "Expected initializing or error response, got: {}", result);
     }
 }

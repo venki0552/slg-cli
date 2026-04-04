@@ -22,9 +22,19 @@ impl IndexStore {
         let conn = Connection::open(path)
             .map_err(|e| SlgError::Database(format!("Failed to open database: {}", e)))?;
 
-        // Enable WAL mode for concurrent reads
-        conn.execute_batch("PRAGMA journal_mode=WAL;")
-            .map_err(|e| SlgError::Database(format!("Failed to set WAL mode: {}", e)))?;
+        // Performance-tuned PRAGMAs for bulk indexing and fast reads
+        conn.execute_batch(
+            "PRAGMA journal_mode = WAL;
+             PRAGMA synchronous = NORMAL;
+             PRAGMA cache_size = -64000;
+             PRAGMA mmap_size = 268435456;
+             PRAGMA temp_store = MEMORY;
+             PRAGMA page_size = 4096;",
+        )
+        .map_err(|e| SlgError::Database(format!("Failed to set PRAGMAs: {}", e)))?;
+
+        // Increase prepared statement cache (default is small)
+        conn.set_prepared_statement_cache_capacity(32);
 
         let store = Self {
             conn,
@@ -111,12 +121,8 @@ impl IndexStore {
     }
 
     /// Store a commit document along with its embedding.
-    /// Idempotent: skips if hash already exists.
+    /// Idempotent: uses INSERT OR IGNORE to skip duplicates.
     pub fn store_commit(&self, doc: &CommitDoc, embedding: &[f32]) -> Result<(), SlgError> {
-        if self.commit_exists(&doc.hash)? {
-            return Ok(());
-        }
-
         let tx = self
             .conn
             .unchecked_transaction()
@@ -127,8 +133,8 @@ impl IndexStore {
         let issues_json = serde_json::to_string(&doc.linked_issues).unwrap_or_default();
         let prs_json = serde_json::to_string(&doc.linked_prs).unwrap_or_default();
 
-        tx.execute(
-            "INSERT INTO commits (hash, short_hash, message, body, diff_summary, author,
+        let rows = tx.execute(
+            "INSERT OR IGNORE INTO commits (hash, short_hash, message, body, diff_summary, author,
              timestamp, files_changed, insertions, deletions, linked_issues, linked_prs,
              intent, risk_score, branch, injection_flagged, secrets_redacted, indexed_at)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
@@ -155,13 +161,15 @@ impl IndexStore {
         )
         .map_err(|e| SlgError::Database(format!("Failed to insert commit: {}", e)))?;
 
-        // Store embedding as blob (f32 array → bytes)
-        let embedding_bytes = embedding_to_bytes(embedding);
-        tx.execute(
-            "INSERT INTO commit_embeddings (hash, embedding) VALUES (?1, ?2)",
-            params![doc.hash, embedding_bytes],
-        )
-        .map_err(|e| SlgError::Database(format!("Failed to insert embedding: {}", e)))?;
+        if rows > 0 {
+            // Store embedding as blob (f32 array → bytes)
+            let embedding_bytes = embedding_to_bytes(embedding);
+            tx.execute(
+                "INSERT OR IGNORE INTO commit_embeddings (hash, embedding) VALUES (?1, ?2)",
+                params![doc.hash, embedding_bytes],
+            )
+            .map_err(|e| SlgError::Database(format!("Failed to insert embedding: {}", e)))?;
+        }
 
         tx.commit()
             .map_err(|e| SlgError::Database(format!("Failed to commit transaction: {}", e)))?;
@@ -175,11 +183,13 @@ impl IndexStore {
         let count: i64 = self
             .conn
             .query_row(
-                "SELECT COUNT(*) FROM commits WHERE hash = ?1",
+                "SELECT 1 FROM commits WHERE hash = ?1",
                 params![hash],
                 |row| row.get(0),
             )
-            .map_err(|e| SlgError::Database(format!("Query failed: {}", e)))?;
+            .optional()
+            .map_err(|e| SlgError::Database(format!("Query failed: {}", e)))?
+            .unwrap_or(0);
         Ok(count > 0)
     }
 
@@ -229,7 +239,7 @@ impl IndexStore {
     pub fn list_all_hashes(&self) -> Result<Vec<String>, SlgError> {
         let mut stmt = self
             .conn
-            .prepare("SELECT hash FROM commits ORDER BY timestamp DESC")
+            .prepare_cached("SELECT hash FROM commits ORDER BY timestamp DESC")
             .map_err(|e| SlgError::Database(format!("Prepare failed: {}", e)))?;
 
         let hashes = stmt
@@ -265,9 +275,15 @@ impl IndexStore {
         query_embedding: &[f32],
         top_k: usize,
     ) -> Result<Vec<(String, f32)>, SlgError> {
+        // Pre-compute query norm once
+        let query_norm: f32 = query_embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
+        if query_norm == 0.0 {
+            return Ok(vec![]);
+        }
+
         let mut stmt = self
             .conn
-            .prepare("SELECT hash, embedding FROM commit_embeddings")
+            .prepare_cached("SELECT hash, embedding FROM commit_embeddings")
             .map_err(|e| SlgError::Database(format!("Prepare failed: {}", e)))?;
 
         let mut results: Vec<(String, f32)> = stmt
@@ -280,7 +296,7 @@ impl IndexStore {
             .filter_map(|r| r.ok())
             .map(|(hash, bytes)| {
                 let embedding = bytes_to_embedding(&bytes);
-                let score = cosine_similarity(query_embedding, &embedding);
+                let score = cosine_similarity_prenorm(query_embedding, query_norm, &embedding);
                 (hash, score)
             })
             .collect();
@@ -400,33 +416,136 @@ impl IndexStore {
     pub fn connection(&self) -> &Connection {
         &self.conn
     }
+
+    /// Store a batch of commit documents with their embeddings in a single transaction.
+    /// Much faster than calling store_commit individually for each doc.
+    /// Uses INSERT OR IGNORE to skip duplicates without a separate existence check.
+    pub fn store_batch(
+        &self,
+        docs: &[CommitDoc],
+        embeddings: &[Vec<f32>],
+    ) -> Result<u64, SlgError> {
+        assert_eq!(docs.len(), embeddings.len());
+        if docs.is_empty() {
+            return Ok(0);
+        }
+
+        let tx = self
+            .conn
+            .unchecked_transaction()
+            .map_err(|e| SlgError::Database(format!("Failed to begin batch transaction: {}", e)))?;
+
+        let now = chrono::Utc::now().timestamp();
+        let mut stored = 0u64;
+
+        // Use prepare_cached so the statement handle is reused across batches
+        {
+            let mut commit_stmt = tx.prepare_cached(
+                "INSERT OR IGNORE INTO commits (hash, short_hash, message, body, diff_summary, author,
+                 timestamp, files_changed, insertions, deletions, linked_issues, linked_prs,
+                 intent, risk_score, branch, injection_flagged, secrets_redacted, indexed_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+            )
+            .map_err(|e| SlgError::Database(format!("Failed to prepare commit stmt: {}", e)))?;
+
+            let mut emb_stmt = tx.prepare_cached(
+                "INSERT OR IGNORE INTO commit_embeddings (hash, embedding) VALUES (?1, ?2)",
+            )
+            .map_err(|e| SlgError::Database(format!("Failed to prepare embedding stmt: {}", e)))?;
+
+            for (doc, embedding) in docs.iter().zip(embeddings.iter()) {
+                let files_json = serde_json::to_string(&doc.files_changed).unwrap_or_default();
+                let issues_json = serde_json::to_string(&doc.linked_issues).unwrap_or_default();
+                let prs_json = serde_json::to_string(&doc.linked_prs).unwrap_or_default();
+
+                let rows = commit_stmt.execute(params![
+                    doc.hash,
+                    doc.short_hash,
+                    doc.message,
+                    doc.body,
+                    doc.diff_summary,
+                    doc.author,
+                    doc.timestamp,
+                    files_json,
+                    doc.insertions,
+                    doc.deletions,
+                    issues_json,
+                    prs_json,
+                    format!("{:?}", doc.intent),
+                    doc.risk_score,
+                    doc.branch,
+                    doc.injection_flagged as i32,
+                    doc.secrets_redacted,
+                    now,
+                ])
+                .map_err(|e| SlgError::Database(format!("Failed to insert commit in batch: {}", e)))?;
+
+                if rows > 0 {
+                    let embedding_bytes = embedding_to_bytes(embedding);
+                    emb_stmt.execute(params![doc.hash, embedding_bytes])
+                        .map_err(|e| {
+                            SlgError::Database(format!("Failed to insert embedding in batch: {}", e))
+                        })?;
+                    stored += 1;
+                }
+            }
+        }
+
+        tx.commit()
+            .map_err(|e| SlgError::Database(format!("Failed to commit batch: {}", e)))?;
+
+        Ok(stored)
+    }
 }
 
-/// Convert f32 embedding to bytes for blob storage.
+/// Convert f32 embedding to bytes for blob storage (zero-copy safe cast).
 fn embedding_to_bytes(embedding: &[f32]) -> Vec<u8> {
-    embedding.iter().flat_map(|f| f.to_le_bytes()).collect()
+    let byte_len = embedding.len() * std::mem::size_of::<f32>();
+    let mut bytes = Vec::with_capacity(byte_len);
+    for &f in embedding {
+        bytes.extend_from_slice(&f.to_le_bytes());
+    }
+    bytes
 }
 
-/// Convert bytes back to f32 embedding.
+/// Convert bytes back to f32 embedding (safe, no unsafe needed).
 fn bytes_to_embedding(bytes: &[u8]) -> Vec<f32> {
-    bytes
-        .chunks_exact(4)
-        .map(|chunk| f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
-        .collect()
+    let mut result = Vec::with_capacity(bytes.len() / 4);
+    for chunk in bytes.chunks_exact(4) {
+        result.push(f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]));
+    }
+    result
 }
 
 /// Cosine similarity between two vectors.
+#[cfg(test)]
 fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() || a.is_empty() {
         return 0.0;
     }
-    let dot: f32 = a.iter().zip(b.iter()).map(|(x, y)| x * y).sum();
-    let norm_a: f32 = a.iter().map(|x| x * x).sum::<f32>().sqrt();
-    let norm_b: f32 = b.iter().map(|x| x * x).sum::<f32>().sqrt();
-    if norm_a == 0.0 || norm_b == 0.0 {
+    // Fused single-pass: compute dot product and norms simultaneously
+    let (mut dot, mut norm_a_sq, mut norm_b_sq) = (0.0f32, 0.0f32, 0.0f32);
+    for (x, y) in a.iter().zip(b.iter()) {
+        dot += x * y;
+        norm_a_sq += x * x;
+        norm_b_sq += y * y;
+    }
+    let denom = norm_a_sq.sqrt() * norm_b_sq.sqrt();
+    if denom == 0.0 { 0.0 } else { dot / denom }
+}
+
+/// Cosine similarity with pre-computed query norm (avoids recomputing per candidate).
+fn cosine_similarity_prenorm(a: &[f32], a_norm: f32, b: &[f32]) -> f32 {
+    if a.len() != b.len() || a.is_empty() || a_norm == 0.0 {
         return 0.0;
     }
-    dot / (norm_a * norm_b)
+    let (mut dot, mut norm_b_sq) = (0.0f32, 0.0f32);
+    for (x, y) in a.iter().zip(b.iter()) {
+        dot += x * y;
+        norm_b_sq += y * y;
+    }
+    let b_norm = norm_b_sq.sqrt();
+    if b_norm == 0.0 { 0.0 } else { dot / (a_norm * b_norm) }
 }
 
 /// Parse intent string from DB back to CommitIntent.

@@ -5,6 +5,11 @@ use tracing::debug;
 
 const MODEL_NAME: EmbeddingModel = EmbeddingModel::AllMiniLML6V2;
 const EMBEDDING_DIM: usize = 384;
+/// MiniLM-L6-v2 max token sequence length. Anything beyond this is truncated
+/// by the tokenizer anyway, so we cap input text early to save tokenizer work.
+const MAX_TOKEN_LENGTH: usize = 256;
+/// ~4 chars per token on average — cap text at this many chars.
+const MAX_TEXT_CHARS: usize = 800;
 
 /// Embedding engine using fastembed's all-MiniLM-L6-v2 model.
 pub struct Embedder {
@@ -19,6 +24,7 @@ impl Embedder {
 
         let options = InitOptions::new(MODEL_NAME)
             .with_cache_dir(cache_dir)
+            .with_max_length(MAX_TOKEN_LENGTH)
             .with_show_download_progress(true);
 
         let model = TextEmbedding::try_new(options)
@@ -97,8 +103,9 @@ fn build_commit_text(doc: &CommitDoc) -> String {
     let diff = if doc.diff_summary.is_empty() {
         String::new()
     } else {
-        // Truncate diff summary to keep total under ~2000 chars
-        let max_diff = 1500;
+        // MiniLM only uses ~256 tokens. After intent + message + files,
+        // we have ~150 tokens left for diff. Cap early to avoid tokenizer overhead.
+        let max_diff = 400;
         let d = if doc.diff_summary.len() > max_diff {
             &doc.diff_summary[..max_diff]
         } else {
@@ -107,7 +114,12 @@ fn build_commit_text(doc: &CommitDoc) -> String {
         format!("\nSummary: {}", d)
     };
 
-    format!("{}: {}{}{}{}", intent, doc.message, files, issues, diff)
+    let mut result = format!("{}: {}{}{}{}", intent, doc.message, files, issues, diff);
+    // Hard cap total text — anything beyond MAX_TEXT_CHARS is wasted on tokenizer
+    if result.len() > MAX_TEXT_CHARS {
+        result.truncate(MAX_TEXT_CHARS);
+    }
+    result
 }
 
 #[cfg(test)]
